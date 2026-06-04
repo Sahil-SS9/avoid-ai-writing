@@ -10,6 +10,7 @@ metadata:
   agentskills_spec: "1.0"
   openclaw:
     emoji: "\u270D\uFE0F"
+adoption_status: permanent
 ---
 
 # Avoid AI Writing — Audit & Rewrite
