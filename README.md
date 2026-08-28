@@ -2,16 +2,13 @@
 
 # avoid-ai-writing
 
-Audit & rewrite content to remove AI writing patterns. A practical skill for any AI agent. Supports detection-only mode.
+Audit & rewrite content to remove AI writing patterns. A practical skill for any AI agent. Supports detect-only and edit-in-place modes, plus voice profiles.
 
 [![GitHub stars](https://img.shields.io/github/stars/conorbronsdon/avoid-ai-writing?style=social)](https://github.com/conorbronsdon/avoid-ai-writing/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 [![X](https://img.shields.io/badge/X-@ConorBronsdon-black?style=flat-square&logo=x)](https://x.com/ConorBronsdon)
-[![Web App](https://img.shields.io/badge/Try_the_web_app-ff6b35?style=flat-square&logo=vercel&logoColor=white)](https://avoid-ai-writing-app.vercel.app)
 
-</div>
-<div align="center">
-The community made a meme coin to support the project🤯 CA: BsidWuYJnayqMXVsLGr34524vmZ1BrWFhPer3198pump
+<img src="docs/demo.gif" alt="The bundled detector engine flagging 13 AI-writing patterns by category in a sample paragraph, then scoring the clean rewrite 0/100" width="800">
 </div>
 
 ---
@@ -19,9 +16,12 @@ The community made a meme coin to support the project🤯 CA: BsidWuYJnayqMXVsLG
 
 A portable writing skill for [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [OpenClaw](https://github.com/openclaw/openclaw), [Hermes](https://github.com/NousResearch/hermes-agent), and any other [agentskills.io](https://agentskills.io)-compatible agent. Audits and rewrites content to remove AI writing patterns ("AI-isms").
 
-**Two modes:**
+**Three modes:**
 - **Rewrite** (default) — flags AI patterns and rewrites the text to fix them. A built-in second pass catches patterns that survived the first edit.
 - **Detect** — flags AI patterns without rewriting. Shows which flags are real problems vs. judgment calls. Useful when patterns might be intentional, when auditing content you don't want altered, or when you just want a quick scan.
+- **Edit** — edits a prose file in place (via the Edit tool) with minimal, targeted changes, preserving passages that are already human. Source code, configuration, and generated data are refused because prose rewrites can corrupt structured content. Returns an edits-made + verification report, not the full file.
+
+An optional **voice profile** (casual / professional / technical / warm / blunt) sets how the prose should sound, independent of the audience context profile.
 
 ## Quick demo
 
@@ -39,12 +39,36 @@ A one-shot "make this sound human" prompt catches the obvious stuff. This skill 
 
 - **Structured audit** — returns identified issues with quoted text, the rewrite, a change summary, and a second-pass audit in four discrete sections. You see exactly what changed and why.
 - **Two-pass detection** — the second pass re-reads the rewrite and catches patterns that survive the first edit: recycled transitions, lingering inflation, copula swaps that snuck through.
-- **109-entry word replacement table across 3 tiers** — not vibes-based. Every flagged word has a specific, plainer alternative. "Leverage" → "use." "Commence" → "start." Tier 1 words are always flagged, Tier 2 words flag when they cluster, Tier 3 words flag only at high density. This reduces false positives while catching real AI tells.
-- **36 pattern categories** — see the full list below, each with before/after examples. Includes rhythm/uniformity checks and a rewrite-vs-patch threshold.
+- **112-entry word replacement table across 3 tiers + 10 Tier 3 phrases** — not vibes-based. Every flagged word has a specific, plainer alternative. "Leverage" → "use." "Commence" → "start." Tier 1 words always flag, Tier 2 words flag when they cluster, Tier 3 words flag only at high density. Tier 1 itself splits into **1A frequency markers** (`delve`, `tapestry`) and **1B clarity edits** (`in order to`, `utilize`) — same fix, but only 1A is evidence about how a passage was produced, and 1B is weighted lower so a wordiness fix cannot push a document toward an AI classification. Tier 3 *phrases* (multi-word boilerplate like "the integration of," "decentralized compute") flag on per-phrase repetition or when 3+ distinct phrases stack in one piece — the LLM-self-varies-boilerplate shape.
+- **62 pattern categories** — representative examples below, each with before/after. Includes structural detection (hashtag stuffing, bare-NP bullet lists, hedge-stacked predictions), AI-tool fingerprints (placeholders, citation markup, UTM params), rhythm/uniformity checks, conversational-register tells, and writer-side tests. The full catalog lives in [`SKILL.md`](./SKILL.md); this count is enforced against it in CI.
 - **Detect mode** — flag patterns without rewriting. See which flags are real problems vs. judgment calls. Useful when patterns might be intentional or you're auditing content you don't want altered.
-- **Works with Claude Code and OpenClaw** — single `SKILL.md` with compatible frontmatter for both platforms.
+- **Works across platforms** — one `SKILL.md` runs in Claude Code, Cowork (as a plugin), OpenClaw, Cursor (as a ported rule), and more via `npx skills add`. See the install paths below.
 
 ## Installation & Usage
+
+### Quick install — any agent
+
+The fastest way to install this skill, and later keep it updated, is the community [`skills`](https://github.com/vercel-labs/skills) CLI. It auto-detects installed coding agents and supports 75+ of them, including Claude Code, Codex, Cursor, OpenClaw, and Hermes. `npx` downloads and runs that package from the npm registry. It's third-party code, not something this repo publishes or maintains. The commands below pin `skills@1.5.23` rather than `@latest` so the installer version that runs is fixed and visible; the skill payload still follows this repository's current default branch. Bump the pin yourself once you've checked the [release notes](https://github.com/vercel-labs/skills/releases). It requires Node **>=22.20.0**, a higher floor than this repo's own `>=18`; check with `node --version` if you're not sure which you have.
+
+```bash
+npx skills@1.5.23 add conorbronsdon/avoid-ai-writing
+```
+
+For this public repository, the CLI normally uses its GitHub blob fast path and installs only `SKILL.md`. If that path is unavailable, it can fall back to cloning and install the full root skill directory. Use `git clone` when you explicitly want the detector, tests, CI config, and other repository tooling; see the manual steps below.
+
+Useful flags:
+
+```bash
+# Target specific agents instead of everything detected
+npx skills@1.5.23 add conorbronsdon/avoid-ai-writing -a claude-code -a codex
+
+# Install globally (~/.<agent>/skills/) instead of the current project
+npx skills@1.5.23 add conorbronsdon/avoid-ai-writing -g
+```
+
+Later, `npx skills@1.5.23 update` refreshes installed skills in whichever scope you select. It prompts for project vs. global; pass `-g` or `-p` to choose non-interactively. See the [`skills update` docs](https://github.com/vercel-labs/skills#skills-update) for the full command reference.
+
+Prefer to install by hand, or using an agent not covered above? The sections below are manual, per-platform steps that don't need Node or npx.
 
 ### Claude Code
 
@@ -78,6 +102,22 @@ Read and follow the instructions in ~/.claude/skills/avoid-ai-writing/SKILL.md
 
 Then use `/clean-ai-writing <your text>` in Claude Code.
 
+### Claude Cowork — install as a plugin
+
+[Cowork](https://www.anthropic.com/cowork) loads skills only from **installed plugins** — it doesn't scan `~/.claude/skills/`, so a bare clone (the Claude Code steps above) won't be discovered there. This repo doubles as a single-plugin [marketplace](https://code.claude.com/docs/en/plugin-marketplaces), so install it as a plugin instead:
+
+```bash
+/plugin marketplace add conorbronsdon/avoid-ai-writing
+/plugin install avoid-ai-writing@conorbronsdon-skills
+/reload-plugins   # or restart the session, to activate the skill
+```
+
+In the Cowork desktop app, do the same from **Customize → Plugins → Add marketplace from GitHub** (`conorbronsdon/avoid-ai-writing`), then install **avoid-ai-writing**. The skill auto-triggers from phrases like "remove AI-isms." New releases arrive when the plugin's version is bumped — run `/plugin marketplace update` to pull them.
+
+The same plugin install works in Claude Code if you'd rather have a versioned, updatable plugin than the file clone above.
+
+> Prefer not to install a plugin? Copy `SKILL.md` into a folder connected to your Cowork session and tell the agent to follow `./SKILL.md` — works as a one-off, no auto-trigger.
+
 ### OpenClaw
 
 **Option 1: [Install from ClawHub](https://clawhub.ai/conorbronsdon/avoid-ai-writing)**
@@ -91,6 +131,50 @@ clawhub install avoid-ai-writing
 ```bash
 git clone https://github.com/conorbronsdon/avoid-ai-writing ~/.openclaw/skills/avoid-ai-writing
 ```
+
+### Cursor
+
+Drop the ported rule into your project's `.cursor/rules/`:
+
+```bash
+mkdir -p .cursor/rules
+curl -o .cursor/rules/avoid-ai-writing.mdc \
+  https://raw.githubusercontent.com/conorbronsdon/avoid-ai-writing/main/cursor-rules/avoid-ai-writing.mdc
+```
+
+See [`cursor-rules/README.md`](./cursor-rules/README.md) for activation globs and trigger phrases. Functionally identical to the Claude Code skill — same tier vocabulary, same context profiles, same modes.
+
+### Hermes
+
+Drop the skill into Hermes's skills directory — it then appears automatically as `/avoid-ai-writing`, no registration needed:
+
+```bash
+mkdir -p ~/.hermes/skills/writing/avoid-ai-writing
+curl -o ~/.hermes/skills/writing/avoid-ai-writing/SKILL.md \
+  https://raw.githubusercontent.com/conorbronsdon/avoid-ai-writing/main/SKILL.md
+```
+
+### OpenAI Codex
+
+Codex reads [Agent Skills](https://developers.openai.com/codex/skills) in the same `SKILL.md` format. Put it in `.agents/skills/` at the repo root, or `~/.agents/skills/` to use it across all your projects:
+
+```bash
+mkdir -p .agents/skills/avoid-ai-writing
+curl -o .agents/skills/avoid-ai-writing/SKILL.md \
+  https://raw.githubusercontent.com/conorbronsdon/avoid-ai-writing/main/SKILL.md
+```
+
+### Other agents
+
+The same `SKILL.md` (or the Cursor `.mdc` port) drops into most tools' rules/skills location:
+
+| Tool | Where to put it |
+|------|-----------------|
+| **Windsurf** | `.windsurf/rules/avoid-ai-writing.md` |
+| **Cline** | `.clinerules/avoid-ai-writing.md` |
+| **GitHub Copilot** (VS Code) | paste into `.github/copilot-instructions.md` |
+| **Claude.ai Projects** | paste `SKILL.md` into the project's custom instructions |
+| **ChatGPT Custom GPTs** | paste `SKILL.md` into the GPT's Instructions field |
 
 ### Triggering the skill
 
@@ -115,7 +199,9 @@ In **detect mode**, the skill returns two sections:
 
 Trigger detect mode with: "detect," "flag only," "audit only," "just flag," "scan," or similar.
 
-## 36 Patterns Detected
+## Pattern reference
+
+> Representative examples from the catalog — not the exhaustive list (that's [`SKILL.md`](./SKILL.md)). The skill's human-facing prose catalog and the [detector engine](./detector/) use **different counts on purpose**: the engine implements 48 `type` categories because it splits the vocabulary tiers and adds stylometric/fingerprint signals (punctuation distribution, function-word entropy, bypass-trick detection) that work as math over a document rather than as a rule you'd look up. The two are mapped in [`detector/CATEGORIES.md`](./detector/CATEGORIES.md); don't "fix" one count to match the other.
 
 ### Content Patterns
 
@@ -178,6 +264,62 @@ Trigger detect mode with: "detect," "flag only," "audit only," "just flag," "sca
 | 35 | **Over-polishing** | Every irregularity sanded away, perfectly uniform prose | Keep natural disfluency, varied rhythm |
 | 36 | **Rewrite-vs-patch threshold** | 5+ vocabulary flags + 3+ pattern categories + uniform rhythm | Advise full rewrite, not patching |
 
+### Structural Detection (v3.4)
+
+Added in v3.4 to catch LLM output that sidesteps the vocabulary tables by substituting synonyms but still leans on structural shapes detectors can identify. Crypto/web3/AI-infra content is where these patterns concentrate most heavily, but the rules generalize to any social-length post.
+
+| # | Pattern | Before | After |
+|---|---------|--------|-------|
+| 37 | **Tier 3 phrases (multi-word boilerplate)** | "the integration of," "decentralized compute," "community-driven," "long-term sustainability" stacked across a piece | Replace the repeated phrase with a specific claim, or vary genuinely. Flagged per-phrase at ≥2 hits, or as a cluster when ≥3 distinct phrases appear |
+| 38 | **Future-narrative closers** | "may become one of the most important narratives of the next market cycle" | Pick the falsifiable version. "X may exceed Y by 2027" is a prediction; the template form is not |
+| 39 | **Hedge-stacked predictions** | "could potentially create," "may eventually unlock" | Pick one. Each hedge cancels the next |
+| 40 | **"Real/actual" adjective inflation** | "real on-chain tokenomics," "actual reward sustainability" | Drop the empty intensifier and add the specific claim. Carve-out: "real on-chain settlement, *not* bridged IOUs" is honest contrastive writing — the AI tell is the unsaid contrast |
+| 41 | **Hashtag stuffing** | 15-tag trailing block: `#AI #Crypto #Web3 #Innovation #FutureTech…` | 2-3 specific tags max, or none. Empirical threshold: 6+ tags is near-universal in LLM social output, rare in thoughtful human posts |
+| 42 | **Bullet lists of bare noun phrases** | `* Stable mining efficiency / Reliable pool connectivity / Optimized RandomX performance / Low failed share rates / Effective hardware utilization / Consistent thermal stability` | Convert to prose, or rewrite each item as a full claim with a verb and a number. Carve-out: genuine list content (changelogs, parameter docs, ingredient lists) where bare NPs are correct |
+
+### AI-tool fingerprints & later additions (v3.5–3.8)
+
+| # | Pattern | Before | After |
+|---|---------|--------|-------|
+| 43 | **Unfilled placeholders** | `[Your Name]`, `[INSERT SOURCE]`, `2025-XX-XX` | Fill in with real content or delete — shipped placeholders are a near-definitive tell |
+| 44 | **Chatbot citation markup** | `citeturn0search0`, `oai_citation`, `contentReference[oaicite:0]` | Strip the markup token entirely |
+| 45 | **AI-tool URL parameters** | `utm_source=chatgpt.com`, `utm_source=copilot.com` | Strip the tracking parameter; keep the URL if the link matters |
+| 46 | **Speculative gap-filling** | "maintains a low profile," "likely began his career" | Cut the guess, or replace with a sourced fact |
+| 47 | **Hyphenated modifier stacking** | "a high-quality, well-architected, future-proof solution" | Cut to the modifier that matters; the individual hyphens may be correct |
+| 48 | **Infomercial engagement hooks** | "The catch?", "The kicker?", "Here's the thing." | Delete the hook, state the thing |
+| 49 | **Vocabulary diversity (low TTR)** | Narrow, repetitive word range across 200+ words | Broaden the *what* — name specific things, cite specific cases |
+| 50 | **Self-labeling significance** | "That last move is the contrarian one," "This is the interesting part" | Cut the label; let the explanation carry the weight, or reposition the item so it stands out on its own |
+| 51 | **List-label periods** | `- **Intros.** Years of conferences and operator network.` (also unbolded: `- Intros. Years of...`) | Use a colon, not a period, on a list label: `- **Intros:** years of conferences and operator network.` |
+
+### Conversational-register patterns (v3.15)
+
+Added after a real-world exchange in which a maintainer called out an assisted-sounding GitHub issue reply with "I prefer to talk human to human." Both are judgment calls rather than regex-detectable (an ordinary human paragraph and an AI-generated one can look structurally identical; the tell is the register and the redundant context, not a fixed shape) — see the `detector/CATEGORIES.md` §C note for why a first attempt at a wall-of-text detector was reverted.
+
+| # | Pattern | Before | After |
+|---|---------|--------|-------|
+| 52 | **Wall-of-text replies** | A 4+ sentence, sub-150-word reply delivered as one unbroken paragraph with no line breaks — the shape LLMs default to in issue/PR comments, chat, and DMs | Break at thought boundaries. One idea per line-group, the way a person actually types a reply |
+| 53 | **Recap-flattery opener** | "Thanks for all the legwork here — the migration script and the rollback plan you worked through are what made this possible." | Substance first. If thanks is warranted, one plain clause without the recap: "Thanks for the legwork — this looks right to me" |
+
+### Share-post framing (v3.20)
+
+| # | Pattern | Before | After |
+|---|---------|--------|-------|
+| 54 | **Lingering-attention claims** | "The line I keep coming back to:", "I can't stop thinking about this," "this has been rattling around in my head all week" | Open on the thing itself. Carve-out: keep the frame when a reason follows ("I keep coming back to exit-voice because it predicts who quits") |
+
+### Narrated candor (v3.21)
+
+| # | Pattern | Before | After |
+|---|---------|--------|-------|
+| 55 | **Narrated candor** | "Two caveats I would rather flag than let you discover later:", "I want to be upfront:" | State the caveats. Judgment-only: the same words carry real content in conflict-of-interest disclosure ("in the interest of full disclosure, I own shares in…"), which a regex cannot separate from the empty frame |
+
+### Unnecessary hyphenation (v3.24)
+
+| # | Pattern | Before | After |
+|---|---------|--------|-------|
+| 56 | **Unnecessary hyphenation** | "research-impact aggregator," "code-base," "in real-time," "works out-of-the-box" | "research impact aggregator," "codebase," "in real time," "works out of the box." Preserve legitimate modifiers such as "real-time analytics" |
+
+Two writer-side **tests** round out the catalog (judgment checks, not auto-detected): **paragraph-reshuffle immunity** (can you swap two body paragraphs without breaking the piece?) and the **treadmill effect** ("what's actually new in this paragraph?").
+
 ## Full Example
 
 **Before (AI-generated):**
@@ -208,19 +350,93 @@ Trigger detect mode with: "detect," "flag only," "audit only," "just flag," "sca
 
 That's 35+ AI tells.
 
-## $avoid token + web app
+## Run the detector
 
-The community created a Solana token around this project. You can burn $avoid tokens to run the audit skill through a web app:
+The skill ships a deterministic, zero-dependency detection engine in
+[`detector/`](./detector/) — the same engine the rules above
+describe, as runnable code. It works in Node (`>=18`) and the browser with no
+build step.
 
-**[avoid-ai-writing-app.vercel.app](https://avoid-ai-writing-app.vercel.app)** — paste text, burn 1,000 $avoid, get a full audit + rewrite. Every token burned is permanently removed from circulation.
+It's also the single source of the numeric score: the skill itself (and `detect` mode) report *which* patterns are present and how severe (P0/P1/P2), and the engine is what turns those into one computed 0–100 `score`. There's deliberately no second, prose-estimated score in `SKILL.md` — one scorer, not two.
 
-| | |
-|---|---|
-| Web App | [avoid-ai-writing-app.vercel.app](https://avoid-ai-writing-app.vercel.app) |
-| DexScreener | [dexscreener.com/solana/4b5m...](https://dexscreener.com/solana/4b5mprekzapcwybrsbbaiewtk4amck62rpcznjcxz69m) |
-| Telegram | [t.me/avoidaiwriting](https://t.me/avoidaiwriting) |
-| X Community | [x.com/i/communities/2036440377356591415](https://x.com/i/communities/2036440377356591415) |
-| CA | `BsidWuYJnayqMXVsLGr34524vmZ1BrWFhPer3198pump` |
+```bash
+npm test          # run the detector's fixtures (no deps to install)
+```
+
+```js
+const AIDetector = require("./detector/patterns.js");
+const { score, label, issues } = AIDetector.analyzeText("Your text here…");
+```
+
+See [`detector/README.md`](./detector/README.md) for the full `analyzeText` API
+and [`detector/CATEGORIES.md`](./detector/CATEGORIES.md) for the rule ↔ category
+map that keeps `SKILL.md` and the engine in sync.
+
+### Use the detector over MCP
+
+[`avoid-ai-writing-mcp`](https://github.com/conorbronsdon/avoid-ai-writing-mcp)
+wraps the published detector as a local stdio MCP server. It exposes two
+read-only tools: `score_text` for a compact result and `audit_text` for the full
+list of findings, suggestions, statistics, and highlighted sentence regions.
+
+```bash
+claude mcp add avoid-ai-writing -- npx -y avoid-ai-writing-mcp@0.1.0
+```
+
+The server calls no model and sends no text to a network service. It
+intentionally has no rewrite tool; rewriting stays in the skill, where the
+agent can apply the full editorial rules and preservation guardrails. See the
+[MCP repository](https://github.com/conorbronsdon/avoid-ai-writing-mcp) for
+configuration examples for other MCP hosts.
+
+The engine also ships a preservation validator. `detector/validate.js` compares
+a rewrite against its original and fails when the edit touched something it
+shouldn't have: a code block, YAML frontmatter, a blockquote, a table cell,
+inline code, a URL, a file path, the heading structure, or when the rewrite ends
+with more flagged patterns than it started with.
+
+```bash
+node detector/validate.js before.md after.md   # exits 1 on a preservation error
+```
+
+**Does it pass its own pass?** [`PROOF.md`](./PROOF.md) scores this repo's
+documentation with this repo's detector and publishes the result, including two
+defects the scan found in our own work. `npm run self-scan` reproduces it, and
+CI fails when a document drifts past its budget.
+
+## House style is a different job
+
+This skill removes AI-writing tells. Enforcing a published style guide is the
+different job: it doesn't do that, and it ships no style guides of its own. The
+optional `--style` input takes a house-style config you supply: a `register` list
+the model applies, and a `mechanics` object whose checkable rules
+`scripts/check-style.js` verifies deterministically (quote form and Latin
+abbreviations gate the exit code; heading case, em-dash rate, and number spelling
+are advisory). [`examples/`](./examples/) has the schema. You can skip the input
+entirely and put your guide in your agent's context alongside a
+[voice profile](#triggering-the-skill), as instructions rather than as a checked
+rule set.
+
+If you want Google, Microsoft, Red Hat, or Salesforce style checked in CI,
+[Vale](https://github.com/vale-cli/vale) already covers that. Its
+[package registry](https://github.com/vale-cli/packages) carries
+Vale-compatible implementations of those four, alongside ports of `proselint`,
+`write-good`, and `alex`. The four style-guide packages are MIT-licensed, though
+the guides they implement are not always (see the audit below); the linter ports
+vary, and proselint's is BSD-3-Clause. The two tools do different jobs and
+compose: Vale gates a document against a rule set, applying fixes one alert at a
+time, while this skill rewrites whole passages as you draft.
+
+Paywalled guides (Chicago, APA, MLA, AP) have no machine-readable
+implementation here or in Vale, and won't get one here. Nothing in this repo
+could verify that a rewrite is Chicago-compliant, so claiming it would fail the
+same bar [`PROOF.md`](./PROOF.md) holds every other number to. Passing one of
+their names to `--style` bundles nothing; it falls back to the model's own
+knowledge, and `SKILL.md` instructs it to say so and to claim no compliance.
+That is an instruction rather than a checked rule, which is the point: there is
+nothing here to check it against. The
+[license audit](https://github.com/conorbronsdon/avoid-ai-writing/issues/88)
+behind that line is public.
 
 ## Credits
 
@@ -231,13 +447,23 @@ Pattern research informed by:
 - [brandonwise/humanizer](https://github.com/brandonwise/humanizer) — tiered vocabulary system, statistical analysis research (burstiness, sentence length variation, trigram repetition), and rewrite philosophy
 - [OpenClaw](https://github.com/openclaw/openclaw) humanizer skill ecosystem — community patterns and vocabulary research
 
-Authored by [Conor Bronsdon](https://github.com/conorbronsdon) · [LinkedIn](https://www.linkedin.com/in/conorbronsdon/) · [Chain of Thought podcast](https://chainofthought.show)
+Pull requests get an automated first-pass review from [Qodo Merge](https://github.com/marketplace/qodo-merge-pro-for-open-source), free through Qodo's open source program. Thanks to the Qodo team for supporting OSS maintainers.
+
+Authored by [Conor Bronsdon](https://github.com/conorbronsdon) · [LinkedIn](https://www.linkedin.com/in/conorbronsdon/) · [Chain of Thought podcast](https://chainofthought.show/?utm_source=github&utm_medium=referral&utm_campaign=repo-readme&utm_content=avoid-ai-writing)
+
+## Community / Multilingual
+
+Things the community has built around this skill:
+
+- **[avoid-ai-writing-multilingual](https://github.com/jurigis/avoid-ai-writing-multilingual)** by [Jürgen Kraus](https://github.com/jurigis) — German (`SKILL-DE.md`), French (`SKILL-FR.md`), Italian (`SKILL-IT.md`), Romanian (`SKILL-RO.md`), and Swedish (`SKILL-SV.md`) adaptations, grounded in native-language research rather than translated from English.
+
+Built something on top of this skill? Open an issue — happy to link it here.
 
 ---
 
 ## Disclaimer
 
-*All views, opinions, and statements expressed on this account are solely my own and are made in my personal capacity. They do not reflect, and should not be construed as reflecting, the views, positions, or policies of Modular. This account is not affiliated with, authorized by, or endorsed by Modular in any way.*
+*This is an independent personal project, not affiliated with, sponsored by, or endorsed by any company. All views expressed are my own.*
 
 ## License
 
