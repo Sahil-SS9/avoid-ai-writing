@@ -1417,6 +1417,117 @@ test('v2: Cyrillic homoglyph swap restores Tier 1 hit', () => {
   assert.ok(r.stats.normalization.homoglyph >= 2, `expected >=2 homoglyph swaps, got ${r.stats.normalization.homoglyph}`);
 });
 
+const russianParagraph = 'Мы проверили новый отчёт вместе с командой и нашли три ошибки в расчётах. '
+  + 'Все они касались округления, поэтому исправление заняло меньше часа.';
+const russianPadding = Array(6).fill(russianParagraph).join(' ');
+
+test('Cyrillic-dominant prose reports no homoglyph swaps', () => {
+  const r = AIDetector.analyzeText(russianParagraph);
+  assert.equal(r.stats.normalization.homoglyph, 0);
+  assert.ok(!r.issues.some((i) => i.type === 'normalization-flag'), 'plain Russian must not look like a bypass tool');
+});
+
+test('Russian padding and one plain English sentence report no homoglyph attack', () => {
+  const r = AIDetector.analyzeText(`${russianPadding} The team reviewed the report today.`);
+  assert.equal(r.stats.normalization.homoglyph, 0);
+  assert.ok(!r.issues.some((i) => i.type === 'normalization-flag'));
+});
+
+test('Greek-dominant prose reports no homoglyph swaps', () => {
+  const text = 'Η ομάδα έλεγξε την αναφορά και βρήκε τρία λάθη στους υπολογισμούς. '
+    + 'Όλα αφορούσαν τη στρογγυλοποίηση, οπότε η διόρθωση πήρε λιγότερο από μία ώρα.';
+  const r = AIDetector.analyzeText(text);
+  assert.equal(r.stats.normalization.homoglyph, 0);
+  assert.ok(!r.issues.some((i) => i.type === 'normalization-flag'), 'plain Greek must not look like a bypass tool');
+});
+
+test('mixed-script words are still swapped inside Cyrillic prose', () => {
+  const normalized = AIDetector.normalizeText('Мы снова обсуждали dеlve и эхо на встрече');
+  assert.equal(normalized.text, 'Мы снова обсуждали delve и эхо на встрече');
+  assert.equal(normalized.flags.homoglyph, 1);
+});
+
+test('Cyrillic padding does not hide mixed-script obfuscation', () => {
+  const padding = 'Мы проверили новый отчёт вместе с командой и нашли три ошибки в расчётах. '.repeat(3);
+  const normalized = AIDetector.normalizeText(`We will dеlve into the report today.\n\n${padding}`);
+  assert.ok(normalized.text.startsWith('We will delve into the report today.'));
+  assert.equal(normalized.flags.homoglyph, 1);
+});
+
+test('Latin-dominant text still swaps a fully substituted word', () => {
+  const normalized = AIDetector.normalizeText('The team reviewed the report together and found an аре');
+  assert.equal(normalized.text, 'The team reviewed the report together and found an ape');
+  assert.equal(normalized.flags.homoglyph, 3);
+});
+
+test('fully substituted аст in English is flagged with or without Russian padding', () => {
+  const sentence = 'Your account is at risk. аст now to secure it.';
+  for (const text of [sentence, `${sentence} ${russianPadding}`, `${sentence}\n${russianPadding}`]) {
+    const r = AIDetector.analyzeText(text);
+    assert.equal(r.stats.normalization.homoglyph, 3);
+    assert.ok(r.issues.some((i) => i.type === 'normalization-flag'));
+    assert.equal(r.document_classification, 'AI_ONLY');
+  }
+});
+
+test('fully substituted аст in a single English sentence is swapped', () => {
+  const normalized = AIDetector.normalizeText('аст now to secure it.');
+  assert.equal(normalized.text, 'act now to secure it.');
+  assert.equal(normalized.flags.homoglyph, 3);
+});
+
+test('an ordinary Russian word in an English line is left alone', () => {
+  const text = 'The note uses жизнь to mean life.';
+  const normalized = AIDetector.normalizeText(text);
+  assert.equal(normalized.text, text);
+  assert.equal(normalized.flags.homoglyph, 0);
+  assert.ok(!AIDetector.analyzeText(text).issues.some((i) => i.type === 'normalization-flag'));
+});
+
+test('two-letter Russian words next to Russian words are not swapped in English sentences', () => {
+  for (const word of ['со', 'ее', 'ох', 'ус']) {
+    const text = `This guide explains how to run docker compose ${word} флагом build and inspect logs safely.`;
+    const normalized = AIDetector.normalizeText(text);
+    assert.equal(normalized.text, text, word);
+    assert.equal(normalized.flags.homoglyph, 0, word);
+    assert.notEqual(AIDetector.analyzeText(text).document_classification, 'AI_ONLY', word);
+  }
+});
+
+test('an isolated fully substituted word is swapped when punctuation separates it', () => {
+  const sentence = AIDetector.normalizeText('Your account is at risk. аст. Now secure it immediately through this form before it expires.');
+  assert.ok(sentence.text.includes(' act. Now'));
+  assert.equal(sentence.flags.homoglyph, 3);
+});
+
+test('hyphenated bilingual compounds keep their Russian half', () => {
+  const text = 'Our API-сервис handles deployment requests while the team monitors logs and reviews customer feedback each day.';
+  const normalized = AIDetector.normalizeText(text);
+  assert.equal(normalized.text, text);
+  assert.equal(normalized.flags.homoglyph, 0);
+  assert.notEqual(AIDetector.analyzeText(text).document_classification, 'AI_ONLY');
+});
+
+test('fully substituted words beside Russian words are a documented limit', () => {
+  const inside = 'The new service launches tomorrow and the team expects a detailed report. МЕТА поможет нам после проверки.';
+  assert.equal(AIDetector.normalizeText(inside).flags.homoglyph, 0);
+  const beside = 'Your account is at risk. пароль: аст now to secure it immediately through this form before it expires.';
+  assert.equal(AIDetector.normalizeText(beside).flags.homoglyph, 0);
+});
+
+test('bilingual technical sentences keep Russian words and one-letter prepositions intact', () => {
+  const text = 'Запустите docker compose up с флагом build and then watch the container logs closely.';
+  const normalized = AIDetector.normalizeText(text);
+  assert.equal(normalized.text, text);
+  assert.equal(normalized.flags.homoglyph, 0);
+});
+
+test('equal Latin and Cyrillic counts keep the Cyrillic-dominant tie rule', () => {
+  const normalized = AIDetector.normalizeText('а a');
+  assert.equal(normalized.text, 'а a');
+  assert.equal(normalized.flags.homoglyph, 0);
+});
+
 test('v2: formulaic opener fires', () => {
   const text = 'In the rapidly evolving world of decentralized finance, new protocols have emerged as critical infrastructure. The market continues to expand at an unprecedented pace each quarter without fail.';
   const r = AIDetector.analyzeText(text);

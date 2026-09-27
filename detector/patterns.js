@@ -71,7 +71,13 @@ const AIDetector = (() => {
 
   const ZERO_WIDTH_RE = /[​-‍﻿⁠]/u;
   const ZERO_WIDTH_GLOBAL_RE = /[​-‍﻿⁠]/gu;
+  const HOMOGLYPH_RE = /[Ѐ-ӿͰ-Ͽ]/u;
   const HOMOGLYPH_GLOBAL_RE = /[Ѐ-ӿͰ-Ͽ]/gu;
+  const LATIN_LETTER_RE = /\p{Script=Latin}/u;
+  const LATIN_LETTER_GLOBAL_RE = /\p{Script=Latin}/gu;
+  // Words are letter runs; a hyphen splits them, so "API-сервис" stays two
+  // words and its Russian half is not swapped.
+  const LETTER_RUN_GLOBAL_RE = /[\p{L}\p{M}]+/gu;
   const ROLEPLAY_VERBS_RE = /^(?:nods|sighs|laughs|smiles|frowns|shrugs|grins|winks|chuckles|gasps|pauses|thinks|wonders|whispers|shouts|gestures|raises|leans|turns|looks|glances|smirks|blinks|nodding|sighing|laughing|smiling|thinking|gesturing)\b/i;
   const ROLEPLAY_MARKER_RE = /(?<!\*)\*([^*\n]{1,80}?)\*(?!\*)/gu;
 
@@ -125,11 +131,58 @@ const AIDetector = (() => {
     }
 
     // 2. Swap Cyrillic / Greek Latin-lookalike chars back to Latin so
-    //    pattern matching catches obfuscated tokens.
-    out = out.replace(HOMOGLYPH_GLOBAL_RE, (m) => {
-      const swap = CYRILLIC_LOOKALIKES[m] ?? GREEK_LOOKALIKES[m];
+    //    pattern matching catches obfuscated tokens. Swapping every а, е, о
+    //    reported thousands of "homoglyph swaps" on plain Russian text, and
+    //    swapping inside ordinary Russian words flagged bilingual technical
+    //    text, so only two word shapes are swapped:
+    //    - mixed-script words ("pаypal", "dеlve"), anywhere;
+    //    - words of two or more letters spelled entirely in lookalike
+    //      letters ("аст" for "act"), when the sentence or line around them
+    //      is not Russian or Greek prose: either Latin letters dominate and
+    //      neither neighbouring word uses Cyrillic or Greek, or every
+    //      Cyrillic and Greek letter in the unit is a lookalike. Deciding
+    //      per unit, not per document, keeps Russian padding from hiding
+    //      such a word in an English sentence.
+    //    Ordinary Russian words contain non-lookalike letters (з, п, и, н);
+    //    short words such as "со" next to other Russian words stay put, and
+    //    one-letter prepositions (с, о, у) are too short.
+    //    Known limits, because no letter-level rule separates these from
+    //    real Russian: a fully substituted word inside or next to Russian
+    //    words ("МЕТА поможет", "пароль: аст") is left alone; a one-letter
+    //    lookalike split off by a hyphen ("а-ct") is left alone; and a short
+    //    Russian sentence spelled only in lookalike letters ("Он сам.") is
+    //    swapped.
+    const lookalikeFor = (m) => CYRILLIC_LOOKALIKES[m] ?? GREEK_LOOKALIKES[m];
+    const swapLookalike = (m) => {
+      const swap = lookalikeFor(m);
       if (swap) { flags.homoglyph++; return swap; }
       return m;
+    };
+    const letterCount = (word) => (word.match(/\p{L}/gu) || []).length;
+    const allLookalike = (word) => letterCount(word) >= 2
+      && [...word].every((ch) => lookalikeFor(ch) || !/\p{L}/u.test(ch));
+    out = out.replace(/[^.!?\r\n]+/g, (unit) => {
+      const scriptLetters = unit.match(HOMOGLYPH_GLOBAL_RE) || [];
+      const latinLetters = (unit.match(LATIN_LETTER_GLOBAL_RE) || []).length;
+      const latinDominant = scriptLetters.length < latinLetters;
+      const onlyLookalikes = scriptLetters.length > 0 && scriptLetters.every((ch) => lookalikeFor(ch));
+      const words = [...unit.matchAll(LETTER_RUN_GLOBAL_RE)];
+      let result = '';
+      let last = 0;
+      words.forEach((match, i) => {
+        const word = match[0];
+        let next = word;
+        if (HOMOGLYPH_RE.test(word)) {
+          const isolated = ![words[i - 1], words[i + 1]].some((w) => w && HOMOGLYPH_RE.test(w[0]));
+          if (LATIN_LETTER_RE.test(word)
+              || (allLookalike(word) && ((latinDominant && isolated) || onlyLookalikes))) {
+            next = word.replace(HOMOGLYPH_GLOBAL_RE, swapLookalike);
+          }
+        }
+        result += unit.slice(last, match.index) + next;
+        last = match.index + word.length;
+      });
+      return result + unit.slice(last);
     });
 
     // 3. Strip *roleplay-action* markers — paired *...* containing an
