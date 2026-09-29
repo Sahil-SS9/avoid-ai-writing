@@ -3687,6 +3687,10 @@ test('false-concession requires the vague second half in the same sentence (#211
     'While the model is impressive, real-world deployment remains a challenge.',
     'Although OpenAI has made strides, meaningful questions still remain unanswered.',
     'While the model is impressive, there is still work to do.',
+    // Paired with the must-not-fire case below: moving the same vague close
+    // into the second clause, after the opening clause's own separator, is
+    // exactly the two-half structure #211 asks for.
+    'While the model is impressive, it remains a challenge to maintain, so we plan to replace it next month.',
   ];
   for (const text of mustFire) {
     const r = AIDetector.analyzeText(text, { contextMode: 'technical' });
@@ -3701,6 +3705,10 @@ test('false-concession requires the vague second half in the same sentence (#211
     // "do" without a trailing word boundary matched as a bare prefix of
     // "download" — Qodo's own example sentence for this rule.
     'While the model is impressive, there is still work to download the update.',
+    // Both phrases sit inside the opening "while" clause, with no separator
+    // between "is impressive" and the vague close; the concrete main clause
+    // ("we plan to replace it next month") is never reached. See #359.
+    'While the model is impressive and remains a challenge to maintain, we plan to replace it next month.',
   ];
   for (const text of mustNotFire) {
     const r = AIDetector.analyzeText(text, { contextMode: 'technical' });

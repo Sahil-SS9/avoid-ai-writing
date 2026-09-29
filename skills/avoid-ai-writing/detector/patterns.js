@@ -777,8 +777,13 @@ const AIDetector = (() => {
   // instead") is ordinary technical writing, not the empty frame. See #211.
   // "Despite X challenges" is dropped entirely: alone it is too common a
   // shape in ordinary prose to carry the tell.
+  // The close must also follow a clause separator (comma, semicolon or
+  // colon): without one, "While the model is impressive and remains a
+  // challenge to maintain, we plan to replace it next month" matched both
+  // phrases inside the opening clause and never looked at the concrete main
+  // clause that followed. See #359.
   const FALSE_CONCESSION_SUBJECT = "[^,;:.!?\\n]{1,60}?";
-  const FALSE_CONCESSION_GAP = "[^.!?\\n]{0,80}?";
+  const FALSE_CONCESSION_GAP = "[^,;:.!?\\n]{0,80}?[,;:]\\s*[^.!?\\n]{0,80}?";
   const FALSE_CONCESSION_VAGUE_CLOSE =
     "(?:remains?\\s+a\\s+challenge" +
     "|(?:is|are)\\s+still\\s+an?\\s+open\\s+questions?" +
