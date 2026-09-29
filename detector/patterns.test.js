@@ -77,6 +77,21 @@ test('text over 10k words returns tooLong flag', () => {
   assert.equal(r.label, 'Text too long');
 });
 
+test('#234: unscored labels return stats with the same keys', () => {
+  const empty = AIDetector.analyzeText('');
+  const tooShort = AIDetector.analyzeText('Short unscorable text snippet.');
+  const tooLong = AIDetector.analyzeText('word '.repeat(10001));
+
+  const expectedKeys = Object.keys(empty.stats).sort();
+
+  assert.deepEqual(Object.keys(tooShort.stats).sort(), expectedKeys);
+  assert.deepEqual(Object.keys(tooLong.stats).sort(), expectedKeys);
+});
+
+test('#234: analyzeText throws TypeError for non-string input', () => {
+  assert.throws(() => AIDetector.analyzeText(123), TypeError);
+});
+
 test('AI-heavy paragraph scores in Strong/Heavy range', () => {
   const text = [
     "In today's ever-evolving landscape, we delve into the intricate",
