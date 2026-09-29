@@ -783,6 +783,11 @@ const AIDetector = (() => {
   // phrases inside the opening clause and never looked at the concrete main
   // clause that followed. See #359.
   const FALSE_CONCESSION_SUBJECT = "[^,;:.!?\\n]{1,60}?";
+  // Known limit: a period inside an abbreviation ("U.S.", "e.g.") ends the
+  // gap the same as a real sentence boundary would, so a close on the far
+  // side of one is deliberately missed to keep that boundary guarantee;
+  // only a comma, semicolon or colon counts as the clause separator #359
+  // requires.
   const FALSE_CONCESSION_GAP = "[^,;:.!?\\n]{0,80}?[,;:]\\s*[^.!?\\n]{0,80}?";
   const FALSE_CONCESSION_VAGUE_CLOSE =
     "(?:remains?\\s+a\\s+challenge" +

@@ -3702,13 +3702,20 @@ test('false-concession requires the vague second half in the same sentence (#211
   const mustNotFire = [
     'Despite these challenges, the team shipped the release on schedule and the error rate held flat through the first week of traffic.',
     'While Postgres is impressive at this scale, our write pattern is append-only, so we moved the hot table to a log-structured store instead.',
-    // "do" without a trailing word boundary matched as a bare prefix of
-    // "download" — Qodo's own example sentence for this rule.
+    // Qodo's own example sentence for this rule, verbatim: "do" without a
+    // trailing word boundary used to match as a bare prefix of "download".
+    'While the model is impressive, there is still work to download before we can run it.',
+    // A variant of Qodo's sentence, not verbatim, covering the same
+    // trailing-word-boundary bug with a different tail after "download".
     'While the model is impressive, there is still work to download the update.',
     // Both phrases sit inside the opening "while" clause, with no separator
     // between "is impressive" and the vague close; the concrete main clause
     // ("we plan to replace it next month") is never reached. See #359.
     'While the model is impressive and remains a challenge to maintain, we plan to replace it next month.',
+    // Known limitation (#359): a period inside an abbreviation ends the gap
+    // like a real sentence boundary, so a close past "U.S." is deliberately
+    // missed rather than risk crossing a genuine sentence.
+    'While the model is impressive, U.S. deployment remains a challenge for the team and its partners.',
   ];
   for (const text of mustNotFire) {
     const r = AIDetector.analyzeText(text, { contextMode: 'technical' });
