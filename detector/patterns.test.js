@@ -3682,6 +3682,29 @@ test('#234: empty and whitespace-only input preserve selected modes', () => {
   }
 });
 
+test('false-concession requires the vague second half in the same sentence (#211)', () => {
+  const mustFire = [
+    'While the model is impressive, real-world deployment remains a challenge.',
+    'Although OpenAI has made strides, meaningful questions still remain unanswered.',
+  ];
+  for (const text of mustFire) {
+    const r = AIDetector.analyzeText(text, { contextMode: 'technical' });
+    assert.ok(!r.tooShort, `fixture must clear the length gate (wordCount >= 10): ${text}`);
+    const types = new Set(r.issues.map((i) => i.type));
+    assert.ok(types.has('false-concession'), `expected false-concession flag: ${text}`);
+  }
+
+  const mustNotFire = [
+    'Despite these challenges, the team shipped the release on schedule and the error rate held flat through the first week of traffic.',
+    'While Postgres is impressive at this scale, our write pattern is append-only, so we moved the hot table to a log-structured store instead.',
+  ];
+  for (const text of mustNotFire) {
+    const r = AIDetector.analyzeText(text, { contextMode: 'technical' });
+    const types = new Set(r.issues.map((i) => i.type));
+    assert.ok(!types.has('false-concession'), `bare opener without a vague close in the same sentence must not flag: ${text}`);
+  }
+});
+
 if (failed > 0) {
   console.error(`\n${failed} test(s) failed`);
   process.exit(1);
