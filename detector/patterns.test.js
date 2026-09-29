@@ -77,6 +77,21 @@ test('text over 10k words returns tooLong flag', () => {
   assert.equal(r.label, 'Text too long');
 });
 
+test('#234: unscored labels return stats with the same keys', () => {
+  const empty = AIDetector.analyzeText('');
+  const tooShort = AIDetector.analyzeText('Short unscorable text snippet.');
+  const tooLong = AIDetector.analyzeText('word '.repeat(10001));
+
+  const expectedKeys = Object.keys(empty.stats).sort();
+
+  assert.deepEqual(Object.keys(tooShort.stats).sort(), expectedKeys);
+  assert.deepEqual(Object.keys(tooLong.stats).sort(), expectedKeys);
+});
+
+test('#234: analyzeText throws TypeError for non-string input', () => {
+  assert.throws(() => AIDetector.analyzeText(123), TypeError);
+});
+
 test('AI-heavy paragraph scores in Strong/Heavy range', () => {
   const text = [
     "In today's ever-evolving landscape, we delve into the intricate",
@@ -2165,6 +2180,13 @@ test('v2: invalid contextMode falls back to general with stats.contextModeFallba
   const r = AIDetector.analyzeText(text, { contextMode: 'tecnical' });
   assert.equal(r.stats.contextMode, 'general', 'invalid mode coerced to general');
   assert.equal(r.stats.contextModeFallback, 'tecnical', 'fallback echoes original');
+});
+
+test('#234: falsy invalid contextMode is preserved in fallback stats', () => {
+  const r = AIDetector.analyzeText('', { contextMode: '' });
+
+  assert.equal(r.stats.contextMode, 'general');
+  assert.equal(r.stats.contextModeFallback, '');
 });
 
 test('v2: trinary fields present on tooShort / tooLong / empty as UNSCORED', () => {

@@ -8,6 +8,7 @@ All notable changes to this project are documented here.
 
 ### Fixed
 
+- Fix empty-result stats and non-string input handling (#234).
 - Cyrillic and Greek prose no longer reads as a homoglyph bypass. Script dominance is decided per sentence, and only mixed-script or fully substituted words surrounded by non-Russian text are swapped; limits are documented in `detector/patterns.js` (#352).
 
 ### Added
