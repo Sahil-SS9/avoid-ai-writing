@@ -2079,7 +2079,7 @@ const AIDetector = (() => {
     }
 
     const VALID_CONTEXT_MODES = new Set(['general', 'technical', 'marketing', 'personal']);
-    const requestedMode = options.contextMode || 'general';
+    const requestedMode = options.contextMode === undefined ? 'general' : options.contextMode;
     const contextMode = VALID_CONTEXT_MODES.has(requestedMode) ? requestedMode : 'general';
     const contextModeFallback = requestedMode !== contextMode ? requestedMode : null;
 

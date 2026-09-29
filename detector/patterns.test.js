@@ -2182,6 +2182,13 @@ test('v2: invalid contextMode falls back to general with stats.contextModeFallba
   assert.equal(r.stats.contextModeFallback, 'tecnical', 'fallback echoes original');
 });
 
+test('#234: falsy invalid contextMode is preserved in fallback stats', () => {
+  const r = AIDetector.analyzeText('', { contextMode: '' });
+
+  assert.equal(r.stats.contextMode, 'general');
+  assert.equal(r.stats.contextModeFallback, '');
+});
+
 test('v2: trinary fields present on tooShort / tooLong / empty as UNSCORED', () => {
   // Early-exit paths return UNSCORED (not HUMAN_ONLY) so a caller can't
   // mistake a refused scan for a confident human verdict. A 50k-word
