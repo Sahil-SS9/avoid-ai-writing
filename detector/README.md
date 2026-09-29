@@ -271,3 +271,10 @@ Results and the findings it surfaced are in [`../PROOF.md`](../PROOF.md).
   category weights live in the `ISSUE_WEIGHTS` table.
 - **Length gates.** Under ~10 words → `Too short` (unscorable); over 10k words →
   `Text too long`.
+
+The human-readable validator banner and residual message now distinguish mechanical
+preservation from quality diagnostics under both policies. Parse the documented
+API fields and issue codes for automation; CLI exit behavior remains 0/1. Use
+`--residual-policy` only with a validator version that supports it; update the
+validator and skill together. An execution or argument error is an incomplete
+check, not evidence of damaged content.

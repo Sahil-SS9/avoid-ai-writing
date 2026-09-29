@@ -80,7 +80,7 @@ Do not claim the deterministic validator checked semantic representation details
 
 ### PASS
 
-No blocking mechanical preservation error was found and no warning or semantic concern remains unresolved. This does not prove semantic fidelity. Continue only if another requested stage remains.
+No blocking mechanical preservation error was found and no warning or semantic concern remains unresolved. If the user requested a residual audit, PASS also requires `quality.status: checked`; `skipped`, `unavailable`, or `unscored` requires REVIEW even when a number-spelling warning has been resolved. This does not prove semantic fidelity. Continue only if another requested stage remains.
 
 ### REVIEW
 
