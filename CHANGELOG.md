@@ -10,7 +10,7 @@ All notable changes to this project are documented here.
 
 - Fix empty-result stats and non-string input handling (#234).
 - Cyrillic and Greek prose no longer reads as a homoglyph bypass. Script dominance is decided per sentence, and only mixed-script or fully substituted words surrounded by non-Russian text are swapped; limits are documented in `detector/patterns.js` (#352).
-- `false-concession` now requires a vague close ("remains a challenge", "is still an open question", "there is still work to do", "remain unanswered") in the same sentence as the "while X is impressive" / "although X has made strides" opener, and the subject is no longer limited to one word. A bare opener followed by a specific, concrete continuation no longer flags. The bare "despite X challenges" opener is dropped: on its own it is too common a shape in ordinary prose to carry the tell. No new category (#211).
+- "Narrow the false-concession rule to require a vague close in the same sentence, widen the subject past one word, and drop the bare despite-challenges opener" (#211).
 
 ### Added
 

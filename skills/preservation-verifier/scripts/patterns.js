@@ -764,10 +764,31 @@ const AIDetector = (() => {
   ];
 
   // ─── False concession ──────────────────────────────────────────────
+  // "While X is impressive, Y remains a challenge" and "Although X has made
+  // strides, Y is still an open question" only read as the AI tell when both
+  // halves are vague: an opener that concedes nothing specific, paired with a
+  // close that names no actual gap. The subject (X) is widened past a single
+  // word — "while the underlying model architecture is impressive" is as
+  // hollow as "while it is impressive" — but stays inside one clause (no
+  // comma or sentence punctuation) so the opener cannot reach across clauses.
+  // The close is required in the same sentence: a bare opener followed by a
+  // concrete, specific continuation ("...at this scale, our write pattern is
+  // append-only, so we moved the hot table to a log-structured store
+  // instead") is ordinary technical writing, not the empty frame. See #211.
+  // "Despite X challenges" is dropped entirely: alone it is too common a
+  // shape in ordinary prose to carry the tell.
+  const FALSE_CONCESSION_SUBJECT = "[^,;:.!?\\n]{1,60}?";
+  const FALSE_CONCESSION_GAP = "[^.!?\\n]{0,80}?";
+  const FALSE_CONCESSION_VAGUE_CLOSE =
+    "(?:remains?\\s+a\\s+challenge" +
+    "|(?:is|are)\\s+still\\s+an?\\s+open\\s+questions?" +
+    "|there\\s+(?:is|are)\\s+still\\s+work\\s+to\\s+do" +
+    "|remains?\\s+unanswered)";
   const FALSE_CONCESSION = [
-    /\bwhile\s+\w+\s+is\s+impressive\b/gi,
-    /\balthough\s+\w+\s+has\s+made\s+strides\b/gi,
-    /\bdespite\s+\w+\s+challenges?\b/gi,
+    new RegExp("\\bwhile\\s+" + FALSE_CONCESSION_SUBJECT + "\\s+is\\s+impressive\\b" +
+      FALSE_CONCESSION_GAP + FALSE_CONCESSION_VAGUE_CLOSE, 'gi'),
+    new RegExp("\\balthough\\s+" + FALSE_CONCESSION_SUBJECT + "\\s+has\\s+made\\s+strides\\b" +
+      FALSE_CONCESSION_GAP + FALSE_CONCESSION_VAGUE_CLOSE, 'gi'),
   ];
 
   // ─── Rhetorical question openers ───────────────────────────────────
