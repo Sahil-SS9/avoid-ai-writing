@@ -3705,6 +3705,24 @@ test('false-concession requires the vague second half in the same sentence (#211
   }
 });
 
+test('#211: exact nine-word example is length-gated alone, flags within a longer input', () => {
+  // The issue's own example is nine words, one short of the ten-word
+  // scoring minimum. Padding it (e.g. adding "still") to clear that gate,
+  // as an earlier fixture did, leaves the exact reported sentence untested.
+  // This covers both outcomes without touching the minimum-word threshold.
+  const original = 'Although OpenAI has made strides, meaningful questions remain unanswered.';
+
+  const short = AIDetector.analyzeText(original, { contextMode: 'technical' });
+  assert.equal(short.stats.wordCount, 9, 'the reported example is nine words');
+  assert.equal(short.tooShort, true, 'nine words alone must stay under the length gate');
+  assert.equal(short.issues.length, 0, 'too-short input reports no issues');
+
+  const withinLongerInput = AIDetector.analyzeText(`${original} More analysis follows.`, { contextMode: 'technical' });
+  assert.ok(!withinLongerInput.tooShort, 'appending a sentence must clear the length gate');
+  const types = new Set(withinLongerInput.issues.map((i) => i.type));
+  assert.ok(types.has('false-concession'), 'the exact reported sentence must flag once the input clears the length gate');
+});
+
 if (failed > 0) {
   console.error(`\n${failed} test(s) failed`);
   process.exit(1);
