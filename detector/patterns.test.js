@@ -3639,6 +3639,27 @@ test('fnword-trigram-entropy: single trigram fires at 150 words, not 149', () =>
     .filter(i => i.type === 'fnword-trigram-entropy').length, 0);
 });
 
+test('#234: non-string input reports the expected type', () => {
+  for (const input of [123, null, undefined, false, {}, []]) {
+    assert.throws(() => AIDetector.analyzeText(input), {
+      name: 'TypeError',
+      message: 'analyzeText(text): argument must be a string',
+    });
+  }
+});
+
+test('#234: empty and whitespace-only input preserve selected modes', () => {
+  for (const text of ['', ' \n\t']) {
+    const r = AIDetector.analyzeText(text, {
+      contextMode: 'technical', sourceMode: 'rendered-markdown',
+    });
+    assert.equal(r.label, 'Empty');
+    assert.equal(r.stats.wordCount, 0);
+    assert.equal(r.stats.contextMode, 'technical');
+    assert.equal(r.stats.sourceMode, 'rendered-markdown');
+  }
+});
+
 if (failed > 0) {
   console.error(`\n${failed} test(s) failed`);
   process.exit(1);
