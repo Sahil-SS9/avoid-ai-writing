@@ -772,7 +772,7 @@ Trope review sourced from [tropes.fyi/directory](https://tropes.fyi/directory) a
   - Tier 1 (always flag): 53 entries — dead giveaways that appear 5–20x more often in AI text
   - Tier 2 (flag in clusters): 38 entries — legitimate words that signal AI when 2+ appear in the same paragraph
   - Tier 3 (flag by density): 11 entries — common words that only flag when the text is saturated with them
-- 39 new vocabulary entries across all tiers, including: bustling, intricate, complexities, ever-evolving, daunting, holistic, actionable, impactful, learnings, thought leadership, best practices, synergy, interplay, encompass, catalyze, reimagine, galvanize, augment, cultivate, illuminate, elucidate, juxtapose, paradigm-shifting, transformative, cornerstone, paramount, poised, burgeoning, nascent, quintessential, overarching, underpinning, significant, innovative, dynamic, scalable, compelling, unprecedented, sophisticated, instrumental, world-class
+- 39 new vocabulary entries across all tiers, including: `bustling, intricate, complexities, ever-evolving, daunting, holistic, actionable, impactful, learnings, thought leadership, best practices, synergy, interplay, encompass, catalyze, reimagine, galvanize, augment, cultivate, illuminate, elucidate, juxtapose, paradigm-shifting, transformative, cornerstone, paramount, poised, burgeoning, nascent, quintessential, overarching, underpinning, significant, innovative, dynamic, scalable, compelling, unprecedented, sophisticated, instrumental, world-class`
 - Credit to [brandonwise/humanizer](https://github.com/brandonwise/humanizer) for tiered vocabulary research
 
 ### Changed
@@ -785,7 +785,7 @@ Trope review sourced from [tropes.fyi/directory](https://tropes.fyi/directory) a
 ## [1.4.0] — 2026-03-17
 
 ### Added
-- 15 new word/phrase replacements: nuanced, crucial, multifaceted, ecosystem, myriad, plethora, deep dive/dive into, unpack, bolster, spearhead, resonate, revolutionize, facilitate, underpin
+- 15 new word/phrase replacements: `nuanced, crucial, multifaceted, ecosystem, myriad, plethora, deep dive/dive into, unpack, bolster, spearhead, resonate, revolutionize, facilitate, underpin`
 - New pattern category: "let's" constructions (false-collaborative openers like "let's explore," "let's break this down")
 - Skill now covers 23 pattern categories with 58 word/phrase replacements
 
@@ -815,7 +815,7 @@ Trope review sourced from [tropes.fyi/directory](https://tropes.fyi/directory) a
 
 ### Added
 - 8 new pattern categories: notability name-dropping, superficial -ing analyses, promotional language, formulaic challenges, false ranges, inline-header lists, title case headings, cutoff disclaimers
-- 5 new word table entries (nestled, vibrant, thriving, despite challenges, showcasing)
+- 5 new word table entries (`nestled`, `vibrant`, `thriving`, `despite challenges`, `showcasing`)
 - Skill now covers 21 pattern categories with 43 word/phrase replacements
 
 ### Changed
