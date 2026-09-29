@@ -8,7 +8,7 @@ All notable changes to this project are documented here.
 
 ### Fixed
 
-- Empty detector results now return the same `stats` shape as other unscored results, preserving context and source-mode metadata; `analyzeText()` also rejects non-string input with a `TypeError`, removing the CLI workaround for empty stats (#234).
+- Fix empty-result stats and non-string input handling (#234).
 - Cyrillic and Greek prose no longer reads as a homoglyph bypass. Script dominance is decided per sentence, and only mixed-script or fully substituted words surrounded by non-Russian text are swapped; limits are documented in `detector/patterns.js` (#352).
 
 ### Added
