@@ -9,5 +9,10 @@
   "prompt_sha256": {
     "prompt-initial.md": "e1b264dee14a37a61666a7a6817a3f6fc1ed116663337e75befccd00e73ae71b",
     "prompt-revised.md": "9010149184040fdd54fb9c2144e9d6ad7daea4f2edcf76ca863369f893a01db1"
+  },
+  "prompt_sha256_note": "Original submitted file bytes; Git normalizes the archived prompt files to LF. Normalized archival hashes are below.",
+  "archived_prompt_lf_sha256": {
+    "prompt-initial.md": "bce8ff003c43bf4d916f2b229c924fea9193ede1b6da25665a8495e58c508dfc",
+    "prompt-revised.md": "5eb4d348b84f60e0b0fac8a931ddc7e88f60aa7eef89f2c418e0bff56b3e51bb"
   }
 }
