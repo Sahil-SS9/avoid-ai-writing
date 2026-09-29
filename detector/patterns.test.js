@@ -3686,6 +3686,7 @@ test('false-concession requires the vague second half in the same sentence (#211
   const mustFire = [
     'While the model is impressive, real-world deployment remains a challenge.',
     'Although OpenAI has made strides, meaningful questions still remain unanswered.',
+    'While the model is impressive, there is still work to do.',
   ];
   for (const text of mustFire) {
     const r = AIDetector.analyzeText(text, { contextMode: 'technical' });
@@ -3697,6 +3698,9 @@ test('false-concession requires the vague second half in the same sentence (#211
   const mustNotFire = [
     'Despite these challenges, the team shipped the release on schedule and the error rate held flat through the first week of traffic.',
     'While Postgres is impressive at this scale, our write pattern is append-only, so we moved the hot table to a log-structured store instead.',
+    // "do" without a trailing word boundary matched as a bare prefix of
+    // "download" — Qodo's own example sentence for this rule.
+    'While the model is impressive, there is still work to download the update.',
   ];
   for (const text of mustNotFire) {
     const r = AIDetector.analyzeText(text, { contextMode: 'technical' });

@@ -783,7 +783,7 @@ const AIDetector = (() => {
     "(?:remains?\\s+a\\s+challenge" +
     "|(?:is|are)\\s+still\\s+an?\\s+open\\s+questions?" +
     "|there\\s+(?:is|are)\\s+still\\s+work\\s+to\\s+do" +
-    "|remains?\\s+unanswered)";
+    "|remains?\\s+unanswered)\\b";
   const FALSE_CONCESSION = [
     new RegExp("\\bwhile\\s+" + FALSE_CONCESSION_SUBJECT + "\\s+is\\s+impressive\\b" +
       FALSE_CONCESSION_GAP + FALSE_CONCESSION_VAGUE_CLOSE, 'gi'),
