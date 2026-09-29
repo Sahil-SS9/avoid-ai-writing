@@ -13,6 +13,8 @@ All notable changes to this project are documented here.
 
 ### Added
 
+- Add advisory residual checks and separate mechanical preservation results from pattern diagnostics (#204).
+
 - The bundled `ai-writing-detector` script accepts `--source-mode <plain|rendered-markdown>`, so the published plugin can reach rendered-Markdown scoring instead of flagging YAML frontmatter as the author's prose. It also accepts the `marketing` and `personal` contexts the root CLI and the detector already support, which it previously rejected. Blank input reports the selected context and source mode instead of an empty `stats` object, matching the root CLI. A bad argument now prints the usage message and exits 2 instead of throwing an uncaught stack trace (#244).
 
 - The detector flags negative parallelism with a new `negative-parallelism` type. "It's not just a search index, it's a foundation for trust." flags on its own. The plain "isn't X, it's Y" frame and the split-sentence "isn't just X. It's Y." flag only when another frame starts within three sentences in the same paragraph, so one real correction stays clean and two unrelated ones far apart do too. "Not only X but also Y" and "not X but Y" are not matched: they are ordinary correlatives and showed up more often in the human control corpus than in the machine one. The engine now has 54 types (#351).
