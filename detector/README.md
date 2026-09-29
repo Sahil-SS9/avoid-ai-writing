@@ -226,8 +226,17 @@ node detector/validate.js --residual-policy warn before.md after.md
 ```
 
 The option precedes the two paths. Use `--` before paths that could be read as
-options. Exit codes remain 0 for no blocking findings, 1 for a failed gate,
-and 2 for invalid arguments. Invalid API policy values throw `TypeError`.
+options. Exit codes are 0 for no blocking findings, 1 for a failed gate or an
+uncaught I/O error (such as a missing input file), and 2 for invalid arguments.
+Check stderr for execution failures; exit 1 alone does not prove content damage.
+Invalid API policy values throw `TypeError`.
+
+The human-readable validator banner and residual message now distinguish mechanical
+preservation from quality diagnostics under both policies. Parse the documented
+API fields and issue codes for automation; normal gate exits remain 0/1. Use
+`--residual-policy` only with a validator version that supports it; update the
+validator and skill together. An execution or argument error is an incomplete
+check, not evidence of damaged content.
 
 | Result field | Contract |
 |---|---|
@@ -271,10 +280,3 @@ Results and the findings it surfaced are in [`../PROOF.md`](../PROOF.md).
   category weights live in the `ISSUE_WEIGHTS` table.
 - **Length gates.** Under ~10 words → `Too short` (unscorable); over 10k words →
   `Text too long`.
-
-The human-readable validator banner and residual message now distinguish mechanical
-preservation from quality diagnostics under both policies. Parse the documented
-API fields and issue codes for automation; CLI exit behavior remains 0/1. Use
-`--residual-policy` only with a validator version that supports it; update the
-validator and skill together. An execution or argument error is an incomplete
-check, not evidence of damaged content.

@@ -69,3 +69,78 @@ the #295/#296 editing stack, a human-reviewed benchmark, or an improvement claim
 for general writing quality. Supplied tool results do not establish model tool
 execution. Mechanical checks still miss qualitative changes in prose. The
 separate semantic review remains necessary.
+
+## Observed model results and disposition
+
+The GPT lead independently read every response against the actual source and
+supplied validator results. These are observations, not self-grades by the editor.
+Initial source: `307cf59a9f808e24c4eed59596b10d1e1eb8b6cc`.
+Revised guidance: `345447284b749c5b2b1a8839a00982f4da3a0b34`.
+
+- Cursor, requested `composer-2.5` (canonical ID not exposed), and authenticated
+  `claude-sonnet-5-5` both identified quantity/qualitative additions and removals,
+  accepted equivalent number spelling, kept residual-only growth nonblocking,
+  failed missing inline code, and marked the unavailable audit REVIEW.
+- Both nevertheless returned PASS for the two number-spelling cases despite a
+  requested but unscored residual audit. Claude explicitly misread the request
+  as not requiring that audit. These are incomplete-audit reporting failures.
+- The revised PASS rule explicitly requires checked quality for a requested
+  audit. Cursor's second batch still missed those two cases. Do not claim all
+  scenarios pass or that a prompt rule reliably enforces workflow completion.
+- Claude's revised scenario invocation returned HTTP 429, zero output tokens,
+  weekly quota exhausted. This is setup_failed, not a model result. Its earlier
+  code re-review completed successfully and is separate from this invocation.
+- All completed scenario responses label assessment model_only; none establishes
+  actual validator execution. The initial and revised prompts and complete
+  response bodies are retained here, including failures.
+
+## Independent code reviews
+
+`reviews.json` records exact source commits, model IDs and complete final replies.
+All free routes were checked in the live OpenRouter catalog on 2026-09-29 UTC:
+zero prompt and completion price. Public packets contained only relevant source
+and were inspected before tool-free transfer outside any checkout.
+
+- Primary: authenticated `claude-sonnet-5-5` at 307cf59 and 3454472.
+- Free: `thinkingmachines/inkling:free` at 307cf59, no actionable findings.
+  Validator and tests are byte-identical in 3454472; that scope carries forward.
+- Free: `inclusionai/ling-3.0-flash-sante:free` at 3454472. Hermes session confirms
+  nonzero output, stop completion, zero tool calls, no tool events.
+- Rejected attempts: `cohere/north-mini-code:free` emitted tool-call text instead
+  of a review (no actual tools ran); `qwen/qwen3.8-27b:free` returned HTTP 429 and
+  zero output. Neither counts as a completed review. Ling was the third and last
+  candidate for this lane.
+
+Lead dispositions after checking actual files:
+
+- Claude's initial exact-banner compatibility concern: intentional reporting
+  change required by #204; API fields, issue codes and default gate exits are
+  preserved and tested. Documented that human-readable output changed.
+- Old validator/new flag mismatch: shipped copies are regenerated together and
+  smoke-tested. Added upgrade-together guidance; do not call execution errors
+  preservation damage.
+- Claude's I/O exit documentation finding: accepted. Clarified that legacy
+  uncaught file-read errors also exit 1, with stderr indicating execution failure.
+  No runtime change.
+- Unscored residual count concern: raw count growth remains observable and the
+  quality status discloses declined coverage; this is not an improvement claim.
+- Ling's throwing-detector concern: preexisting propagation is unchanged;
+  silently swallowing a detector exception would change the contract and hide
+  execution failure. No new exception path introduced.
+- Ling's mechanical PASS versus workflow REVIEW concern: different documented
+  scopes. The CLI explicitly says no mechanical preservation errors, followed
+  by quality status. Requested-audit completion is the verifier's workflow rule.
+- Ling's numeric-warning namespace concern: literal number comparisons are
+  mechanical diagnostics, explicitly documented as warnings, not semantic proof.
+
+The final evidence commit changes only this report and README clarification.
+No control flow, API, test or skill behavior changes after 3454472. The lead read
+those final documentation edits; prior source reviews carry with that scope.
+
+## Final mechanical checks
+
+All 21 JavaScript test files passed, including 64 validator cases. Regenerated
+canonical and Claude bundles passed installed-command and preservation smoke
+tests, including advisory growth plus protected-damage controls. Plugin validation
+returned no errors or warnings. Documentation self-scan passed without changing
+budgets. No detector weights, scoring, pattern IDs or Markdown extractors changed.
