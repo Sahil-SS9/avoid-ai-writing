@@ -12,6 +12,7 @@ All notable changes to this project are documented here.
 
 ### Fixed
 
+- `features` raises `tier1-clarity` only as a verb ("the app features a dashboard"). The plural noun ("three new features", a "Features" heading, "the features we shipped") is ordinary product writing: in the corpus it accounts for 42 of the word's 48 uses, and every one of them was flagged (#351).
 - Narrow the evolution-of shape in `significance-inflation` to require a preceding inflating word, such as "chapter" or "turning point"; neutral scientific and historical uses ("a key stage in the evolution of the vertebrate eye", "an odd place in the evolution of systems languages") no longer flag (#212).
 - Narrow the step-towards/forward shape in `template-phrase` to require a preceding vague-praise adjective, such as "major" or "crucial"; neutral milestones ("a first step towards the full API", "a small step towards cutting our storage bill") no longer flag (#212).
 

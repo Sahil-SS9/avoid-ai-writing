@@ -1295,6 +1295,34 @@ test('hashtag-stuff still fires on tags spread inline through a post', () => {
   assert.ok(types.has('hashtag-stuff'), 'expected hashtag-stuff on 6 inline tags');
 });
 
+const featuresHit = (text) =>
+  AIDetector.analyzeText(text).issues.find((i) => i.type === 'tier1-clarity' && /^features$/i.test(i.text));
+
+test('tier1-clarity flags "features" used as a verb', () => {
+  // Copula avoidance: "X features Y" stands in for "X has Y".
+  for (const text of [
+    'The new app features a clean dashboard and a fast search bar that most users liked.',
+    'The album features guest vocals from three artists who toured with the band last year.',
+    'The cake, which also features blueberries and a bit of chocolate, takes about an hour.',
+  ]) {
+    assert.ok(featuresHit(text), `expected tier1-clarity on: ${text}`);
+  }
+});
+
+test('tier1-clarity leaves "features" alone as a plural noun', () => {
+  // #351: on a product site, every hit was the software noun.
+  for (const text of [
+    'The release adds three features: offline sync, export and search for every plan.',
+    'We shipped the features on Monday after two weeks of testing with the beta group.',
+    'Key features include dark mode, export and a command palette for power users.',
+    'Features include dark mode, export and a command palette for power users today.',
+    '## Features\n\n- Offline sync and export for every plan, including the free tier.',
+    "The product's features are limited, but the export works and sync has never failed.",
+  ]) {
+    assert.equal(featuresHit(text), undefined, `"features" read as a verb in: ${text}`);
+  }
+});
+
 test('low-ttr fires on a 200+ token text with narrow vocabulary', () => {
   // Vocabulary-poor synthetic sample: same 11-word sentence repeated.
   // ~200 tokens, ~11 unique = ~5% TTR. Well under the 40% threshold.
