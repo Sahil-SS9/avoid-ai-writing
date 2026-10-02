@@ -187,11 +187,14 @@ t('example configs are generic, parse with register + mechanics', () => {
 
 // --- CLI exit codes: 0 clean, 1 hard, 2 tool error ---
 const cli = (mdText, cfgArg) => {
-  const f = path.join(os.tmpdir(), `cs-${passed}-${Math.floor(process.hrtime()[1])}.md`);
-  fs.writeFileSync(f, mdText);
-  const r = spawnSync('node', [path.join(__dirname, 'check-style.js'), f, '--config', cfgArg], { encoding: 'utf8' });
-  fs.unlinkSync(f);
-  return r.status;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cs-cli-one-'));
+  const f = path.join(dir, 'input.md');
+  try {
+    fs.writeFileSync(f, mdText);
+    return spawnSync('node', [path.join(__dirname, 'check-style.js'), f, '--config', cfgArg], { encoding: 'utf8' }).status;
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 };
 t('CLI exits 0 clean, 1 on a hard violation, 2 on a tool error', () => {
   assert.strictEqual(cli('# ok\n\nplain text', 'technical'), 0);
@@ -230,6 +233,15 @@ t('CLI: a file named like the config value is still reachable (not filtered by v
   // `--config technical` resolves to examples/; the positional file also named `technical`
   // must be read and checked (clean => 0), not treated as unreachable.
   assert.strictEqual(cliRaw({ technical: '# ok\n\nplain text' }, ['technical', '--config', 'technical']), 0);
+});
+
+t('malformed inline links leave following prose visible to style checks', () => {
+  for (const gap of ['\n', '\r\n', ' ']) {
+    assert.ok(check('[x](url' + gap + 'This is "actual prose")', { quotes: 'curly' }).hard.length > 0);
+    assert.ok(check('[x](url' + gap + 'This is “actual prose”)', { quotes: 'straight' }).hard.length > 0);
+    assert.ok(check('[x](url' + gap + 'This is prose, e.g., this)', { latinAbbrev: 'never' }).hard.length > 0);
+  }
+  assert.strictEqual(check('[x](url\n "Title")', { quotes: 'curly' }).hard.length, 0);
 });
 
 // --- indented code blocks (masked) vs lazy continuation and list content (prose) ---

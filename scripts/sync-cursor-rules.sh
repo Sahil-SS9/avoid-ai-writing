@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Regenerate cursor-rules/avoid-ai-writing.mdc from the canonical root SKILL.md.
-# Root SKILL.md is the single source of truth; the Cursor rule is generated.
+# SKILL.md and references/patterns.md are canonical; Cursor and paste files are generated.
 # Run this after editing SKILL.md. CI fails if the copy is out of sync.
 #
 # The rule is a copy-out artifact: users curl it into their own project's
-# .cursor/rules/, where nothing else from this repo exists. Five spans in
+# .cursor/rules/, where nothing else from this repo exists. Six spans in
 # SKILL.md point at files in this repo, so the generator rewrites them the
 # same way the claude-code-templates vendoring did (davila7/claude-code-templates#773):
 #   1. "this repo measures the ratios" -> passive form (no repo to measure)
@@ -12,6 +12,7 @@
 #   3. the node detector/validate.js mechanical check -> a manual prose check
 #   4. the --style config path (scripts/check-style.js, examples/) -> apply, unverified
 #   5. --style resolution by bare name out of examples/ -> a path only
+#   6. the automatic marks command -> manual convention pass, unverified
 # Each rewrite is anchored on the exact upstream text and FAILS LOUDLY if the
 # anchor stops matching exactly once — so an upstream edit to one of those
 # spans breaks CI here instead of silently shipping a wrong Cursor rule.
@@ -22,9 +23,12 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+python_bin="$(command -v python3 || command -v python)"
 
-python3 - "$repo_root/SKILL.md" "$repo_root/cursor-rules/avoid-ai-writing.mdc" <<'PY'
+node "$repo_root/scripts/flatten-skill.js"
+"$python_bin" - "$repo_root/SKILL.full.md" "$repo_root/cursor-rules/avoid-ai-writing.mdc" <<'PY'
 import io
+from pathlib import Path
 import re
 import sys
 
@@ -72,12 +76,12 @@ body = replace_once(
     """**Mechanical check (optional, recommended for edit mode).** If the repo ships the detector engine, run the preservation validator against the before and after text:
 
 ```bash
-node detector/validate.js <original> <rewritten>
+node detector/validate.js --residual-policy warn <original> <rewritten>
 ```
 
-It exits non-zero when a rewrite altered a fenced code block, YAML frontmatter, a blockquote, a table cell, inline code, a URL, a file path, or the heading structure, and when the rewrite introduced more flagged patterns than it removed. Those are the promises made above; this is what checks them. Rewording a heading to fix Title Case and stripping an AI tracking parameter from a URL are carved out, because this skill instructs both.""",
+This editorial policy keeps mechanical preservation errors blocking and reports residual pattern growth as a quality warning. Review each residual finding for applicability; a higher count alone does not establish content damage or authorize another edit. When the mechanical checks pass, report that no mechanical preservation errors were found, not that meaning was verified. Check facts, added or removed claims, quantities, uncertainty, and user-authorized changes separately. Rewording headings and stripping AI tracking parameters from URLs remain documented carve-outs.""",
     """**3. Preservation check**
-Confirm the rewrite did not alter a fenced code block, YAML frontmatter, a blockquote, a table cell, inline code, a URL, a file path, or the heading structure, and that it did not introduce more flagged patterns than it removed. Those are the promises made above. Rewording a heading to fix Title Case and stripping an AI tracking parameter from a URL are the two carve-outs, because this skill instructs both.""",
+Compare protected content and structure against the source. Review residual pattern findings for applicability; a higher count alone does not establish content damage or authorize another edit. Check facts, added or removed claims, quantities, uncertainty, and user-authorized changes separately. This standalone rule has no bundled validator: report the assessment as model-only and do not claim mechanical checks ran. Rewording headings and stripping AI tracking parameters from URLs remain documented carve-outs.""",
     "span 3 (validate.js mechanical check)",
 )
 body = replace_once(
@@ -93,13 +97,20 @@ body = replace_once(
     "span 5 (--style resolution)",
 )
 
+body = replace_once(
+    body,
+    "Run `node scripts/normalize-quotes.js <rewritten-prose> --reference <original> --write` from the installed skill directory; no explicit quote target is needed.",
+    "Apply the convention manually; this standalone rule does not bundle the upstream normalization command.",
+    "span 6 (automatic marks command)",
+)
+
 cursor_fm = f"""---
 description: Audit and rewrite content to remove AI writing patterns ("AI-isms"). Activate whenever editing prose-heavy files (Markdown, documentation, blog posts, READMEs, release notes, emails). Cursor port of the avoid-ai-writing skill v{version}. See https://github.com/conorbronsdon/avoid-ai-writing.
 globs: ["**/*.md", "**/*.mdx", "**/*.txt", "**/*.rst", "**/*.adoc"]
 alwaysApply: false
 ---
 
-<!-- GENERATED FILE — do not edit by hand. Regenerated from ../SKILL.md by
+<!-- GENERATED FILE — do not edit by hand. Regenerated from ../SKILL.md and ../references/patterns.md by
      scripts/sync-cursor-rules.sh; CI fails when the two drift. -->
 """
 
@@ -125,7 +136,7 @@ alwaysApply: false
 #     form the error message recommends, so the gate must not block it
 #   - a right boundary, so "patterns.json" cannot block via its patterns.js
 #     prefix
-REPO_DIRS = ("detector", "scripts", "examples", "plugins", "cursor-rules", "corpus")
+REPO_DIRS = ("references", "detector", "scripts", "examples", "plugins", "cursor-rules", "corpus")
 # Distinctive enough to block unqualified; README.md and friends are omitted on
 # purpose, since every project has them and this skill's prose names them.
 REPO_FILES = ("check-style.js", "validate.js", "patterns.js", "self-scan.js",
@@ -154,6 +165,7 @@ def scan_line(line):
 # script for the drift check, so the matrix rides along with no extra wiring.
 MUST_BLOCK = (
     "run scripts/check-style.js against the draft",
+    "read references/patterns.md",
     "see detector/CATEGORIES.md for the tiers",
     "bare validate.js and PROOF.md mentions",
     "plugins/avoid-ai-writing/SKILL.md",                # nested — the #110 hole
@@ -213,5 +225,8 @@ if leaks:
     )
 
 io.open(dst, "w", encoding="utf-8", newline="\n").write(cursor_fm + body)
+paste = Path(dst).parent.parent / "dist" / "avoid-ai-writing.md"
+paste.parent.mkdir(exist_ok=True)
+paste.write_text(fm + "\n<!-- GENERATED portable paste artifact; edit SKILL.md and references/patterns.md. -->\n" + body, encoding="utf-8", newline="\n")
 print(f"synced: cursor rule (v{version}); no repo references in the ported body")
 PY

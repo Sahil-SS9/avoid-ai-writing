@@ -32,8 +32,11 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       # ssot-check resolves `../<repo>/...` copies against real directories on
       # disk, so the surfaces have to be cloned as siblings of this checkout.
@@ -52,6 +55,9 @@ jobs:
         run: |
           cd "$GITHUB_WORKSPACE/.."
           git clone --depth 1 --quiet https://github.com/conorbronsdon/ssot-check.git ssot-check
+          # Use the same reviewed revision as the repository-local SSOT pilot.
+          git -C ssot-check fetch --depth 1 origin f3289c400cd591cdcb6ce4016627a442d0804ce7
+          git -C ssot-check checkout --detach FETCH_HEAD
 
       - name: Check the promo surfaces
         id: check
@@ -81,7 +87,7 @@ jobs:
             cat report.md
             echo
             echo "Canonical is this repo. Fix the surfaces, not the README —"
-            echo "the README is already asserted against SKILL.md by"
+            echo "the README is already asserted against references/patterns.md by"
             echo "\`scripts/check-pattern-count.sh\`."
             echo
             echo "_Opened by [promo-drift](.github/workflows/promo-drift.yml)._"
