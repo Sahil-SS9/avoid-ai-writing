@@ -6,6 +6,10 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Packaging
+
+- Sub-skill frontmatters now carry a validated `version` and `license`, checked against the manifest by `validate-openai-plugin.py` (#246).
+
 ### Fixed
 
 - Fix empty-result stats and non-string input handling (#234).

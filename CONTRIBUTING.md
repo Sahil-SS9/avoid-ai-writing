@@ -221,9 +221,10 @@ supported.
 
 When preparing a release, move its Unreleased entries under a dated, versioned
 heading (`## [X.Y.Z] — YYYY-MM-DD`) and update the matching versions in
-`SKILL.md`, `package.json`, and both plugin manifests. A release that adds a
-writing rule needs a minor version bump. Exempt changes need no version bump;
-leave published release entries intact.
+`SKILL.md`, `package.json`, both plugin manifests, and the six sub-skill
+frontmatters (`skills/*/SKILL.md`). A release that adds a writing rule needs
+a minor version bump. Exempt changes need no version bump; leave published
+release entries intact.
 
 After changing either canonical file, run `bash scripts/sync-plugin-skill.sh && bash scripts/sync-cursor-rules.sh`. This regenerates both bundles, `SKILL.full.md`, and the portable paste/Cursor artifacts; CI checks parity. Do not edit generated copies.
 
