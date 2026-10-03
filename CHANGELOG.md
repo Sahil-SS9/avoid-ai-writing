@@ -8,7 +8,7 @@ All notable changes to this project are documented here.
 
 ### Packaging
 
-- Sub-skill frontmatters now carry a validated `version` and `license`, checked against the manifest by `validate-openai-plugin.py` (#246).
+- The six ChatGPT/Codex Skills that lacked them now carry `version` and `license` in their frontmatter, so a bug report or vendored copy can name its version. `validate-openai-plugin.py` fails when any Skill's version is missing or differs from the plugin manifest (#246).
 
 ### Fixed
 
