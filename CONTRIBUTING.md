@@ -241,7 +241,7 @@ the version bump only when the release is ready.
    (`## [X.Y.Z] — YYYY-MM-DD`). A release that adds a writing rule needs a
    minor version bump.
 2. Set the same version in the `SKILL.md` frontmatter, `package.json`,
-   `plugins/avoid-ai-writing/.claude-plugin/plugin.json`, and
+   `plugins/avoid-ai-writing/.claude-plugin/plugin.json`,
    `.codex-plugin/plugin.json`, and the `version:` line of the six
    hand-written `skills/*/SKILL.md` files. The sync scripts do not write these
    versions; `scripts/validate-openai-plugin.py` fails when a Skill's version
