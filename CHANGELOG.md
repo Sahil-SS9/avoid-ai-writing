@@ -6,6 +6,10 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- Cursor port (cursor-rules/) and portable paste (dist/) now state the manual convention once, without bundled-command flags or contradictory conditions; port README no longer claims functional identity (#218).
+
 ### Fixed
 
 - Fix empty-result stats and non-string input handling (#234).

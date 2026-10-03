@@ -100,7 +100,7 @@ body = replace_once(
 body = replace_once(
     body,
     "Run `node scripts/normalize-quotes.js <rewritten-prose> --reference <original> --write` from the installed skill directory; no explicit quote target is needed.",
-    "Apply the convention manually; this standalone rule does not bundle the upstream normalization command.",
+    "Normalize quotes and apostrophes in the edited prose manually: compare double and single quotes against the original, apply straight or curly style consistently, and keep quoted material, code, tables, and attributed text unchanged. This standalone rule has no bundled normalization command.",
     "span 6 (automatic marks command)",
 )
 
