@@ -36,6 +36,7 @@ newcomer PRs. Please leave `good first issue`s for new contributors.
 | `README.md` | The pitch and the numbered prose-pattern list. |
 | [`GLOSSARY.md`](GLOSSARY.md) | One-line definitions of the project's terms, each linked to its canonical source. |
 | `cursor-rules/`, `plugins/` | Editor and tool integrations. |
+| `skills/` | The seven ChatGPT/Codex Skills and their validated connection graph. See [`OPENAI_PLUGIN.md`](OPENAI_PLUGIN.md); changes to `SKILL.md` modes or output can break them. |
 
 ## Adding or changing a rule
 
@@ -125,6 +126,18 @@ The rules from the [#88 license audit](https://github.com/conorbronsdon/avoid-ai
 - **This repo bundles no style guide it cannot verify the license for.** The `--style` layer is config-driven; users supply their own conventions.
 - **Openly-licensed guides may ship later as example configs** (Google, Microsoft, GOV.UK, and 18F qualify), using Vale's attribution pattern: disclaim endorsement, name the license, link the guide upstream.
 - **Paywalled guides (CMOS, APA, MLA, AP) are never shipped, in any form, under any name.** Passing one to `--style` falls through to the fallback that claims no compliance. The reason is trademark and verifiability, not maintenance burden.
+
+## Development setup
+
+Fork the repository and clone your fork. The Node minimum is `engines.node` in
+`package.json`. The sync scripts also need Bash and Python 3. After editing
+`SKILL.md` or `references/patterns.md`, regenerate the copies:
+
+```bash
+bash scripts/sync-plugin-skill.sh && bash scripts/sync-cursor-rules.sh
+```
+
+The next section covers running the full suite and a single test file.
 
 ## Run the tests
 
@@ -216,3 +229,21 @@ After changing either canonical file, run `bash scripts/sync-plugin-skill.sh && 
 
 Maintainers should follow [the release recovery procedure](docs/releasing.md)
 instead of moving a tag or reusing a published version after a failed run.
+
+## Release checklist
+
+The release workflow publishes when a version change reaches `main`, so merge
+the version bump only when the release is ready.
+
+1. Move the `## [Unreleased]` entries under a dated, versioned heading
+   (`## [X.Y.Z] — YYYY-MM-DD`). A release that adds a writing rule needs a
+   minor version bump.
+2. Set the same version in the `SKILL.md` frontmatter, `package.json`,
+   `plugins/avoid-ai-writing/.claude-plugin/plugin.json`, and
+   `.codex-plugin/plugin.json`. The sync scripts do not write the manifest
+   versions.
+3. Run `bash scripts/sync-plugin-skill.sh && bash scripts/sync-cursor-rules.sh`.
+   The first script fails on a manifest version that differs from `SKILL.md`.
+4. Run `npm test`.
+
+If a release run fails, follow [the release recovery procedure](docs/releasing.md).
