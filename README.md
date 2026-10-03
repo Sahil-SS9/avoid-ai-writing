@@ -32,6 +32,8 @@ An optional **voice profile** (casual / professional / technical / warm / blunt)
 
 The [glossary](GLOSSARY.md) defines the terms these docs use: word tiers, severity tiers, modes, profiles, and detector options.
 
+> The single-file paste target `dist/avoid-ai-writing.md` is 138,207 bytes (138 KB). Several paste destinations have much smaller limits: ChatGPT Custom GPT Instructions (~8,000 chars) [source: OpenAI docs](https://platform.openai.com/docs/guides/gpt/custom-gpt), Windsurf/Cline per-rule fields (~1,500 chars). Use directory install or attach the file rather than pasting the full bundle.
+
 ## Table of contents
 - [Quick demo](#quick-demo)
 - [Why a skill, not just a prompt](#why-a-skill-not-just-a-prompt)
@@ -100,7 +102,7 @@ A one-shot "make this sound human" prompt catches the obvious stuff. This skill 
 
 Use the plugin install below or clone the repository into your agent's skills directory. Keep `SKILL.md` with `references/patterns.md`: the entry file loads the catalog before auditing. The bundled `scripts/`, `detector/`, and `examples/` provide optional mechanical verification.
 
-For a single-file rules field, use [`dist/avoid-ai-writing.md`](./dist/avoid-ai-writing.md). It includes every rule and profile, with manual fallbacks for commands unavailable outside the bundle. Do not copy the slim entry file alone. Older installers that fetch only root `SKILL.md` omit its required reference; use a directory install instead.
+For a single-file rules field, use [`dist/avoid-ai-writing.md`](./dist/avoid-ai-writing.md) (138 KB — exceeds ChatGPT Custom GPT ~8,000-char and Windsurf/Cline ~1,500-char paste limits; attach or use directory install instead). It includes every rule and profile, with manual fallbacks for commands unavailable outside the bundle. Do not copy the slim entry file alone. Older installers that fetch only root `SKILL.md` omit its required reference; use a directory install instead.
 
 ### Claude Code
 
@@ -219,11 +221,11 @@ The generated `dist/avoid-ai-writing.md` (or the Cursor `.mdc` port) drops into 
 
 | Tool | Where to put it |
 |------|-----------------|
-| **Windsurf** | `.windsurf/rules/avoid-ai-writing.md` |
-| **Cline** | `.clinerules/avoid-ai-writing.md` |
-| **GitHub Copilot** (VS Code) | paste into `.github/copilot-instructions.md` |
-| **Claude.ai Projects** | paste `dist/avoid-ai-writing.md` into the project's custom instructions |
-| **ChatGPT Custom GPTs** | paste `dist/avoid-ai-writing.md` into the GPT's Instructions field |
+| **Windsurf** | `.windsurf/rules/avoid-ai-writing.md` — per-rule limit ~1,500 chars [source](https://docs.windsurf.com/windsurf/cascade/rules); attach file or use directory install |
+| **Cline** | `.clinerules/avoid-ai-writing.md` — per-rule limit ~1,500 chars; attach file or use directory install |
+| **GitHub Copilot** (VS Code) | paste into `.github/copilot-instructions.md` — ~8,000-char cap [source](https://github.com/features/copilot); attach or install directory |
+| **Claude.ai Projects** | paste `dist/avoid-ai-writing.md` into custom instructions — exceeds typical limits; attach file or use plugin |
+| **ChatGPT Custom GPTs** | paste `dist/avoid-ai-writing.md` into Instructions field — ~8,000-char cap [source](https://platform.openai.com/docs/guides/gpt/custom-gpt); attach as Knowledge or install directory |
 
 ### Triggering the skill
 
