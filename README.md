@@ -215,7 +215,7 @@ python3 scripts/validate-openai-plugin.py . --json
 
 ### Other agents
 
-The generated `dist/avoid-ai-writing.md` (or the Cursor `.mdc` port) drops into most tools' rules/skills location:
+Use the destination below for your tool. Measure the downloaded file with `wc -c dist/avoid-ai-writing.md` for its exact UTF-8 byte count before comparing byte limits; character limits count characters instead.
 
 | Tool | Where to put it | Size limit |
 |------|-----------------|------------|

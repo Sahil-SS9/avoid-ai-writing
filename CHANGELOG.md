@@ -6,6 +6,10 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Documentation
+
+- Document paste-field limits and current file-size measurement. Recommend a directory install for Windsurf and the native plugin or an activated Knowledge upload for ChatGPT (#219).
+
 ### Fixed
 
 - Fix empty-result stats and non-string input handling (#234).
