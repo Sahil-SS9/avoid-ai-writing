@@ -3863,6 +3863,17 @@ test('#216: tier3 counts each word on its own; spread vocabulary stays clean, on
     'one word repeated past the threshold must fire');
 });
 
+// #216: Pin the floor and minimum at exact threshold boundaries.
+test('#216: tier3 rounds down the percentage and requires at least three uses', () => {
+  for (const [wordCount, uses, fires] of [[133, 2, false], [133, 3, true], [241, 6, false], [241, 7, true]]) {
+    const text = Array(uses).fill('significant').concat(Array(wordCount - uses).fill('crew')).join(' ');
+    const result = AIDetector.analyzeText(text);
+    assert.strictEqual(result.stats.wordCount, wordCount);
+    assert.strictEqual(result.issues.some((i) => i.type === 'tier3' && i.text.includes('"significant"')), fires,
+      `${uses} uses in ${wordCount} words must ${fires ? 'fire' : 'stay clean'}`);
+  }
+});
+
 if (failed > 0) {
   console.error(`\n${failed} test(s) failed`);
   process.exit(1);
