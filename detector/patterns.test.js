@@ -3874,6 +3874,13 @@ test('#216: tier3 rounds down the percentage and requires at least three uses', 
   }
 });
 
+test('#216: separately listed Tier 3 inflections do not share a density bucket', () => {
+  const text = ['significant', 'significant', 'significantly', 'significantly', ...Array(129).fill('crew')].join(' ');
+  const result = AIDetector.analyzeText(text);
+  assert.strictEqual(result.stats.wordCount, 133);
+  assert.ok(!result.issues.some((i) => i.type === 'tier3'), 'two uses of each listed form must stay below the three-use floor');
+});
+
 if (failed > 0) {
   console.error(`\n${failed} test(s) failed`);
   process.exit(1);
