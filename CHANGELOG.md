@@ -8,7 +8,7 @@ All notable changes to this project are documented here.
 
 ### Packaging
 
-- The six ChatGPT/Codex Skills that lacked them now carry `version` and `license` in their frontmatter, so a bug report or vendored copy can name its version. `validate-openai-plugin.py` fails when any Skill's version is missing or differs from the plugin manifest (#246).
+- The six ChatGPT/Codex Skills that lacked them now carry `version` and `license` in their frontmatter, so a bug report or vendored copy can name its version. `validate-openai-plugin.py` fails when any Skill's version is missing or differs from the plugin manifest, both in PR checks and release preflight before tagging or publishing (#246).
 
 ### Fixed
 
