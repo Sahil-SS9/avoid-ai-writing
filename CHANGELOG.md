@@ -6,6 +6,10 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Documentation
+
+- Document paste-field limits and current file-size measurement. Recommend a directory install for Windsurf and the native plugin or an activated Knowledge upload for ChatGPT (#219).
+
 ### Packaging
 
 - The six ChatGPT/Codex Skills that lacked them now carry `version` and `license` in their frontmatter, so a bug report or vendored copy can name its version. `validate-openai-plugin.py` fails when any Skill's version is missing or differs from the plugin manifest, both in PR checks and release preflight before tagging or publishing (#246).

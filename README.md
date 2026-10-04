@@ -215,11 +215,11 @@ python3 scripts/validate-openai-plugin.py . --json
 
 ### Other agents
 
-The generated `dist/avoid-ai-writing.md` (or the Cursor `.mdc` port) drops into most tools' rules/skills location:
+Use the destination below for your tool. Measure the downloaded file with `wc -c dist/avoid-ai-writing.md` for its exact UTF-8 byte count before comparing byte limits; character limits count characters instead.
 
 | Tool | Where to put it | Size limit |
 |------|-----------------|------------|
-| **Windsurf** | clone the skill directory into `.windsurf/skills/avoid-ai-writing/` ([skills docs](https://docs.windsurf.com/windsurf/cascade/skills)) | Workspace rule files are limited to 12,000 characters ([rules docs](https://docs.windsurf.com/windsurf/cascade/memories)), so the single file does not fit in `.windsurf/rules/` |
+| **Windsurf** | clone the skill directory into `.devin/skills/avoid-ai-writing/` (`.windsurf/skills/avoid-ai-writing/` is also supported) ([skills docs](https://docs.windsurf.com/windsurf/cascade/skills)) | Workspace rule files are limited to 12,000 characters ([rules docs](https://docs.windsurf.com/windsurf/cascade/memories)), so the single file does not fit in `.windsurf/rules/` |
 | **Cline** | `.clinerules/avoid-ai-writing.md` | None documented; rules use context tokens on every task ([docs](https://docs.cline.bot/features/cline-rules)) |
 | **GitHub Copilot** (VS Code) | paste into `.github/copilot-instructions.md` | None documented ([docs](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions)) |
 | **Claude.ai Projects** | paste `dist/avoid-ai-writing.md` into the project's custom instructions | None documented ([docs](https://support.claude.com/en/articles/9519177-how-can-i-create-and-manage-projects)) |
