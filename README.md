@@ -100,7 +100,7 @@ A one-shot "make this sound human" prompt catches the obvious stuff. This skill 
 
 Use the plugin install below or clone the repository into your agent's skills directory. Keep `SKILL.md` with `references/patterns.md`: the entry file loads the catalog before auditing. The bundled `scripts/`, `detector/`, and `examples/` provide optional mechanical verification.
 
-For a single-file rules field, use [`dist/avoid-ai-writing.md`](./dist/avoid-ai-writing.md). It includes every rule and profile, with manual fallbacks for commands unavailable outside the bundle. Do not copy the slim entry file alone. Older installers that fetch only root `SKILL.md` omit its required reference; use a directory install instead.
+For a single-file rules field, use [`dist/avoid-ai-writing.md`](./dist/avoid-ai-writing.md) (about 138 KB). It includes every rule and profile, with manual fallbacks for commands unavailable outside the bundle. Some rules and instructions fields hold far less than that, so check the size limits under [Other agents](#other-agents) before pasting. Do not copy the slim entry file alone. Older installers that fetch only root `SKILL.md` omit its required reference; use a directory install instead.
 
 ### Claude Code
 
@@ -217,13 +217,13 @@ python3 scripts/validate-openai-plugin.py . --json
 
 The generated `dist/avoid-ai-writing.md` (or the Cursor `.mdc` port) drops into most tools' rules/skills location:
 
-| Tool | Where to put it |
-|------|-----------------|
-| **Windsurf** | `.windsurf/rules/avoid-ai-writing.md` |
-| **Cline** | `.clinerules/avoid-ai-writing.md` |
-| **GitHub Copilot** (VS Code) | paste into `.github/copilot-instructions.md` |
-| **Claude.ai Projects** | paste `dist/avoid-ai-writing.md` into the project's custom instructions |
-| **ChatGPT Custom GPTs** | paste `dist/avoid-ai-writing.md` into the GPT's Instructions field |
+| Tool | Where to put it | Size limit |
+|------|-----------------|------------|
+| **Windsurf** | clone the skill directory into `.windsurf/skills/avoid-ai-writing/` ([skills docs](https://docs.windsurf.com/windsurf/cascade/skills)) | Workspace rule files are limited to 12,000 characters ([rules docs](https://docs.windsurf.com/windsurf/cascade/memories)), so the single file does not fit in `.windsurf/rules/` |
+| **Cline** | `.clinerules/avoid-ai-writing.md` | None documented; rules use context tokens on every task ([docs](https://docs.cline.bot/features/cline-rules)) |
+| **GitHub Copilot** (VS Code) | paste into `.github/copilot-instructions.md` | None documented ([docs](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions)) |
+| **Claude.ai Projects** | paste `dist/avoid-ai-writing.md` into the project's custom instructions | None documented ([docs](https://support.claude.com/en/articles/9519177-how-can-i-create-and-manage-projects)) |
+| **ChatGPT** | install the [native plugin package](#native-chatgpt-and-codex-plugin-package), or upload `dist/avoid-ai-writing.md` as a Custom GPT Knowledge file | A Custom GPT's Instructions field holds far less than the file; do not paste it there |
 
 ### Triggering the skill
 
