@@ -225,6 +225,8 @@ The generated `dist/avoid-ai-writing.md` (or the Cursor `.mdc` port) drops into 
 | **Claude.ai Projects** | paste `dist/avoid-ai-writing.md` into the project's custom instructions | None documented ([docs](https://support.claude.com/en/articles/9519177-how-can-i-create-and-manage-projects)) |
 | **ChatGPT** | install the [native plugin package](#native-chatgpt-and-codex-plugin-package), or upload `dist/avoid-ai-writing.md` as a Custom GPT Knowledge file | A Custom GPT's Instructions field holds far less than the file; do not paste it there |
 
+For a Custom GPT Knowledge upload, add a short instruction directing the GPT to consult `avoid-ai-writing.md` when auditing or rewriting prose. Knowledge files supply reference material; uploading one alone does not activate the skill. Test the GPT in Preview with an example from this README before relying on it ([GPT configuration docs](https://help.openai.com/en/articles/8554397-creating-a-gpt)).
+
 ### Triggering the skill
 
 Once installed, ask your assistant to clean up AI writing:
