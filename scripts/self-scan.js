@@ -226,10 +226,13 @@ function scoreLongText(text) {
   const scored = results.filter((r) => !r.tooShort && r.label !== 'Text too long');
 
   if (!scored.length) return { score: 0, issues: 0, wordCount: 0, chunks: chunks.length, topTypes: [] };
+  const totalWordCount = scored.reduce((sum, r) => sum + (r.stats.wordCount || 0), 0);
+  const weightedScore = scored.reduce((sum, r) => sum + (r.score * (r.stats.wordCount || 0)), 0) / (totalWordCount || 1);
+
   return {
-    score: Math.max(...scored.map((r) => r.score)),
+    score: Math.round(weightedScore),
     issues: scored.reduce((sum, r) => sum + r.issues.length, 0),
-    wordCount: scored.reduce((sum, r) => sum + (r.stats.wordCount || 0), 0),
+    wordCount: totalWordCount,
     chunks: scored.length,
     topTypes: topTypes(scored.flatMap((r) => r.issues)),
   };
