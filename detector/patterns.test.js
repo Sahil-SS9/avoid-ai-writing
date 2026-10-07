@@ -1323,6 +1323,43 @@ test('tier1-clarity leaves "features" alone as a plural noun', () => {
   }
 });
 
+test('features: relative subjects, object compounds and product versions retain verb findings', () => {
+  for (const text of [
+    'The new app that features a clean dashboard and a fast search bar was liked.',
+    'Each features a clean dashboard and a fast search bar for staff.',
+    'This features a clean dashboard and a fast search bar for staff.',
+    'That features a clean dashboard and a fast search bar for staff.',
+    'The phone features on-device AI processing for every request from our test team.',
+    'The guide features in-depth examples of queue failures and retry strategies for operators.',
+    'The app features to-do lists and calendar reminders for staff working from home.',
+    'GPT-5 features a longer context window for our document review workflow.',
+    'Windows 11 features a new Start menu for employees working in our office.',
+    'The X-200 features a six-inch screen and a camera for remote inspections.',
+    'The ship features a clean dining room and cabins for twelve passengers.',
+    'The new build features a clean dashboard and search tools for staff.',
+  ]) {
+    assert.ok(!AIDetector.analyzeText(text).tooShort, `fixture must clear the length gate: ${text}`);
+    assert.ok(featuresHit(text), `expected verb finding: ${text}`);
+  }
+});
+
+test('features: bare objects and product/count modifiers remain ordinary nouns', () => {
+  for (const text of [
+    'We ship features faster than competitors do every quarter in production.',
+    'Teams build features users actually want to keep after onboarding.',
+    'We can build features faster than competitors do every quarter in production.',
+    'We ship GPT-5 features a customer requested for their document review workflow.',
+    'These 3 features a customer requested were released after our final review.',
+    'The platform-specific features helped our operators finish their daily work before lunch.',
+    'We shipped three features that users requested during last month\'s beta test.',
+  ]) {
+    assert.ok(!AIDetector.analyzeText(text).tooShort, `fixture must clear the length gate: ${text}`);
+    assert.equal(featuresHit(text), undefined, `unexpected noun finding: ${text}`);
+  }
+  assert.ok(featuresHit('We ship features faster every quarter. The new app features a clean dashboard for staff.'),
+    'a skipped noun must not consume the later verb finding');
+});
+
 test('low-ttr fires on a 200+ token text with narrow vocabulary', () => {
   // Vocabulary-poor synthetic sample: same 11-word sentence repeated.
   // ~200 tokens, ~11 unique = ~5% TTR. Well under the 40% threshold.
