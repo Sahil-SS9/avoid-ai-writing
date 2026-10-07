@@ -1323,6 +1323,36 @@ test('tier1-clarity leaves "features" alone as a plural noun', () => {
   }
 });
 
+test('features: noun findings never inherit verb highlight regions', () => {
+  const noun = 'We shipped the features on Monday.';
+  const verb = 'The app features a dashboard for our team to review.';
+  const source = noun + ' ' + verb;
+  const result = AIDetector.analyzeText(source);
+  assert.ok(featuresHit(source));
+  assert.equal(result.highlight_sentence_for_ai.length, 1);
+  assert.equal(result.highlight_sentence_for_ai[0].startSentence, 1);
+  assert.equal(result.highlight_sentence_for_ai[0].hitCount, 1);
+  assert.ok(result.highlight_sentence_for_ai[0].start >= noun.length);
+  const twice = AIDetector.analyzeText(verb + ' ' + verb);
+  assert.equal(twice.issues.filter((i) => i.text === 'features').length, 1);
+  assert.equal(twice.highlight_sentence_for_ai[0].hitCount, 2);
+  const markdown = AIDetector.analyzeText('<!-- hidden -->' + source, { sourceMode: 'rendered-markdown' });
+  assert.equal(markdown.highlight_sentence_for_ai[0].hitCount, 1);
+  assert.ok(markdown.highlight_sentence_for_ai[0].start >= '<!-- hidden -->'.length + noun.length);
+});
+
+test('features: product subjects, added objects, quantifiers and curly possessives remain nouns', () => {
+  for (const text of [
+    'Product features help teams manage projects and keep every task moving on schedule.',
+    'The release added features available offline, and customers use them every day.',
+    'Only 3 features a customer requested shipped last week to our users.',
+    'Notion’s features helped teams ship faster in 2026 after the update.',
+    'These features, among other tools, are available for our staff every day.',
+  ]) assert.equal(featuresHit(text), undefined, `expected noun context: ${text}`);
+  const verb = 'The package features, among other tools, a parser that our team uses every day.';
+  assert.ok(featuresHit(verb), 'parenthetical before the verb object must retain the finding');
+});
+
 test('features: relative subjects, object compounds and product versions retain verb findings', () => {
   for (const text of [
     'The new app that features a clean dashboard and a fast search bar was liked.',

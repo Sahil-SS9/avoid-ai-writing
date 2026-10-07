@@ -290,18 +290,20 @@ const AIDetector = (() => {
   // or a verb.
   // Singular "this", "that" and "each" cannot determine the plural noun:
   // here they are subjects ("each features a...") or a relative pronoun.
-  const FEATURES_NOUN_BEFORE_RE = /(?:^|[.!?:;(]\s*|(?:^|\n)[ \t]*(?:[-*+>#]+[ \t]*)?|\b(?:the|a|an|these|those|its|their|our|your|my|his|her|of|or|new|key|main|core|top|other|more|most|many|several|some|all|any|few|no|both|similar|common|specific|distinct|additional|extra|premium|advanced|basic|best|unique|missing|upcoming|existing|latest|major|minor|useful|important|various|different|certain|such|\d+|two|three|four|five|six|seven|eight|nine|ten)\s+|\w's\s+|\w[-/]\w+\s+)$/i;
+  const FEATURES_NOUN_BEFORE_RE = /(?:^|[.!?:;(]\s*|(?:^|\n)[ \t]*(?:[-*+>#]+[ \t]*)?|\b(?:the|a|an|these|those|its|their|our|your|my|his|her|of|or|new|key|main|core|top|other|more|most|many|several|some|all|any|few|no|both|only|about|over|just|free|similar|common|specific|distinct|additional|extra|premium|advanced|basic|best|unique|missing|upcoming|existing|latest|major|minor|useful|important|various|different|certain|such|\d+|two|three|four|five|six|seven|eight|nine|ten)\s+|\w['’]s\s+|\w[-/]\w+\s+)$/i;
   // "on-device" is an object modifier, not the preposition "on".
   const FEATURES_NOUN_AFTER_RE = /^(?:[ \t]*(?:[.,;:!?()[\]"'’”\n]|$)|\s+(?:of|for|in|on|at|into|and|or|but|nor|are|were|is|was|be|been|being|that|which|who|whose|like|such|to|from|with|without|than|include|includes|included|work|works|worked|will|can|could|should|would|may|might|must|do|did|does|have|has|had|we|you|they|i|it)(?![\w-]))/i;
   // Bare product objects: "we ship features", "teams build features".
   // A subject is required so noun subjects such as "the ship"/"the build"
   // still flag. One optional modifier preserves "we ship GPT-5 features".
-  const FEATURES_NOUN_OBJECT_RE = /\b(?:i|we|you|they|teams?|developers?|engineers?|users?|companies|vendors)\s+(?:(?:can|could|will|would|should|must)\s+)?(?:ship|ships|shipped|shipping|build|builds|built|building)\s+(?:[\w./-]+\s+)?$/i;
+  const FEATURES_NOUN_OBJECT_RE = /\b(?:i|we|you|they|teams?|developers?|engineers?|users?|companies|vendors|the\s+(?:release|update))\s+(?:(?:can|could|will|would|should|must)\s+)?(?:ship|ships|shipped|shipping|build|builds|built|building|add|adds|added|adding)\s+(?:[\w./-]+\s+)?$/i;
   function featuresIsNoun(text, index) {
     const end = index + 'features'.length;
     const before = text.slice(Math.max(0, index - 40), index);
     const after = text.slice(end, end + 40);
     if (FEATURES_NOUN_OBJECT_RE.test(before)) return true;
+    if (/\b(?:product|software)\s+$/i.test(before)
+        && /^\s+(?:helps?|helped)(?![\w-])/i.test(after)) return true;
     // A recognizable model/version followed by an object article is a
     // subject: "GPT-5 features a...", "Windows 11 features a...".
     // Determiner-led counts ("These 3 features a customer requested") and
@@ -310,6 +312,10 @@ const AIDetector = (() => {
     const product = /\b([A-Z][\w]*)(?:[-/]\d[\w.-]*|[ \t]+\d+(?:\.\d+)*)[ \t]+$/.exec(before);
     if (product && !FEATURES_NOUN_BEFORE_RE.test(`${product[1]} `)
         && /^\s+(?:a|an|the)(?![\w-])/i.test(after)) return false;
+    // A short comma-delimited aside can precede the verb's article-led
+    // object. Strong noun contexts still take priority over punctuation.
+    if (!FEATURES_NOUN_BEFORE_RE.test(before)
+        && /^[ \t]*,[^,\n]{1,80},\s*(?:a|an|the)(?![\w-])/i.test(text.slice(end, end + 110))) return false;
     return FEATURES_NOUN_BEFORE_RE.test(before) || FEATURES_NOUN_AFTER_RE.test(after);
   }
 
@@ -3228,6 +3234,12 @@ const AIDetector = (() => {
       let idx = 0;
       let matched = false;
       while ((idx = lowerText.indexOf(needle, idx)) !== -1) {
+        // Deduplicated verb issues must not highlight skipped noun matches.
+        // Reuse the same predicate and retain all qualifying verb locations.
+        if (issue.type === 'tier1-clarity' && needle === 'features' && featuresIsNoun(text, idx)) {
+          idx += needle.length;
+          continue;
+        }
         matched = true;
         for (let i = 0; i < sentences.length; i++) {
           if (idx >= sentences[i].start && idx < sentences[i].end) {
