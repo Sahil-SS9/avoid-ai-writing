@@ -292,7 +292,7 @@ const AIDetector = (() => {
   // here they are subjects ("each features a...") or a relative pronoun.
   const FEATURES_NOUN_BEFORE_RE = /(?:^|[.!?:;(]\s*|(?:^|\n)[ \t]*(?:[-*+>#]+[ \t]*)?|\b(?:the|a|an|these|those|its|their|our|your|my|his|her|of|or|new|key|main|core|top|other|more|most|many|several|some|all|any|few|no|both|only|about|over|just|free|similar|common|specific|distinct|additional|extra|premium|advanced|basic|best|unique|missing|upcoming|existing|latest|major|minor|useful|important|various|different|certain|such|\d+|two|three|four|five|six|seven|eight|nine|ten)\s+|\w['’]s\s+|\w[-/]\w+\s+)$/i;
   // "on-device" is an object modifier, not the preposition "on".
-  const FEATURES_NOUN_AFTER_RE = /^(?:[ \t]*(?:[.,;:!?()[\]"'’”\n]|$)|\s+(?:of|for|in|on|at|into|and|or|but|nor|are|were|is|was|be|been|being|that|which|who|whose|like|such|to|from|with|without|than|include|includes|included|work|works|worked|will|can|could|should|would|may|might|must|do|did|does|have|has|had|we|you|they|i|it)(?![\w-]))/i;
+  const FEATURES_NOUN_AFTER_RE = /^(?:[ \t]*(?:[.,;:!?()[\]"'’”\n]|$)|\s+(?:of|for|in|on|at|into|and|or|but|nor|are|were|is|was|be|been|being|that|which|who|whose|like|such|to|from|with|without|than|help|helps|helped|let|allow|make|keep|give|provide|enable|offer|save|protect|ensure|improve|reduce|support|remain|vary|need|unlock|bring|include|includes|included|work|works|worked|will|can|could|should|would|may|might|must|do|did|does|have|has|had|we|you|they|i|it)(?![\w-]))/i;
   // Bare product objects: "we ship features", "teams build features".
   // A subject is required so noun subjects such as "the ship"/"the build"
   // still flag. One optional modifier preserves "we ship GPT-5 features".
@@ -302,8 +302,6 @@ const AIDetector = (() => {
     const before = text.slice(Math.max(0, index - 40), index);
     const after = text.slice(end, end + 40);
     if (FEATURES_NOUN_OBJECT_RE.test(before)) return true;
-    if (/\b(?:product|software)\s+$/i.test(before)
-        && /^\s+(?:helps?|helped)(?![\w-])/i.test(after)) return true;
     // A recognizable model/version followed by an object article is a
     // subject: "GPT-5 features a...", "Windows 11 features a...".
     // Determiner-led counts ("These 3 features a customer requested") and

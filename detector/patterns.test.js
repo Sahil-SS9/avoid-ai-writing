@@ -1353,6 +1353,44 @@ test('features: product subjects, added objects, quantifiers and curly possessiv
   assert.ok(featuresHit(verb), 'parenthetical before the verb object must retain the finding');
 });
 
+test('features: plural subjects followed by base-form verbs remain nouns', () => {
+  const complements = {
+    help: 'teams manage projects and keep every task moving on schedule',
+    let: 'teams edit the same document while reviewers leave comments',
+    allow: 'teams to edit the same document while reviewers leave comments',
+    make: 'backups easier for staff who need to recover their files',
+    keep: 'your data safe across every device that we support today',
+    give: 'managers a clear view of every project across the team',
+    provide: 'context for staff who need to review the latest requests',
+    enable: 'staff to review the latest requests from their own devices',
+    offer: 'a clear view of every project across the entire team',
+    save: 'time for staff who review the latest requests every day',
+    protect: 'files that staff share across their devices during the week',
+    ensure: 'that staff can review requests from all their devices today',
+    improve: 'the way staff review requests from all their devices today',
+    reduce: 'the time staff spend reviewing requests from their own devices',
+    support: 'staff who review requests from all their devices every day',
+    remain: 'available for staff who review requests across all their devices',
+    vary: 'by plan for staff who review requests across different teams',
+    need: 'no setup for staff who review requests across their devices',
+    unlock: 'access for staff who review requests from all their devices',
+    bring: 'new options to staff who review requests across their devices',
+  };
+  for (const [verb, complement] of Object.entries(complements)) {
+    const noun = `Our security features ${verb} ${complement}.`;
+    assert.ok(!AIDetector.analyzeText(noun).tooShort);
+    assert.equal(featuresHit(noun), undefined, `plural subject: ${noun}`);
+    const verbal = `The app features a ${verb} button for staff who review requests every day.`;
+    assert.ok(featuresHit(verbal), `article-led verb object: ${verbal}`);
+  }
+  for (const noun of [
+    'The collaboration features let teams edit the same document in real time.',
+    'Advanced reporting features give managers a clear view of every project.',
+  ]) assert.equal(featuresHit(noun), undefined, `modifier noun: ${noun}`);
+  assert.ok(featuresHit('The app features keep-alive connections for staff who review requests every day.'),
+    'a hyphenated object modifier is not the base-form verb keep');
+});
+
 test('features: relative subjects, object compounds and product versions retain verb findings', () => {
   for (const text of [
     'The new app that features a clean dashboard and a fast search bar was liked.',
