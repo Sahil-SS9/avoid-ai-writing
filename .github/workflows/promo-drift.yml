@@ -79,6 +79,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -o pipefail
           title="Promo surfaces have drifted from the canonical counts"
           {
             echo "The counts in this repo's README moved and one or more"
