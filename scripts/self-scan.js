@@ -183,10 +183,10 @@ function applyExemptions(text) {
 
 /**
  * The detector refuses text over ~10k words. Long documents are scored in
- * paragraph-aligned chunks and reported by their worst chunk, which is the
- * conservative reading: a document is as machine-sounding as its worst section.
- * Issue categories are counted across every accepted chunk so the over-budget
- * diagnostic can name them, the same way the single-pass path does.
+ * paragraph-aligned chunks. Accepted chunks are combined using a word-weighted
+ * average and the final score is rounded. Issue categories are counted across
+ * every accepted chunk so the over-budget diagnostic can name them, the same
+ * way the single-pass path does.
  */
 const CHUNK_WORDS = 4000;
 
