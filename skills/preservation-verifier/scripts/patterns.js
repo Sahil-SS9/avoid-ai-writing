@@ -297,6 +297,9 @@ const AIDetector = (() => {
   // A subject is required so noun subjects such as "the ship"/"the build"
   // still flag. One optional modifier preserves "we ship GPT-5 features".
   const FEATURES_NOUN_OBJECT_RE = /\b(?:i|we|you|they|teams?|developers?|engineers?|users?|companies|vendors|the\s+(?:release|update))\s+(?:(?:can|could|will|would|should|must)\s+)?(?:ship|ships|shipped|shipping|build|builds|built|building|add|adds|added|adding)\s+(?:[\w./-]+\s+)?$/i;
+  // Leads that make "which/what features" an indirect question (#384).
+  const FEATURES_QUESTION_LEAD_RE = /(?:^|[.!?:;(]\s*|(?:^|\n)[ \t]*(?:[-*+>#]+[ \t]*)?|\b(?:decide|decides|deciding|choose|choosing|pick|check|checking|see|know|knowing|learn|find\s+out|figure\s+out|work\s+out|identify|determine|ask|asking|asked|tell\s+(?:me|us|them|you)|show\s+(?:me|us|them|you)|understand|explain|review|compare|track|wonder|discover|confirm|consider|evaluate|select|prioritize|about)\s+)(?:which|what)\s+$/i;
+
   function featuresIsNoun(text, index) {
     const end = index + 'features'.length;
     const before = text.slice(Math.max(0, index - 40), index);
@@ -314,17 +317,22 @@ const AIDetector = (() => {
     // object. Strong noun contexts still take priority over punctuation.
     if (!FEATURES_NOUN_BEFORE_RE.test(before)
         && /^[ \t]*,[^,\n]{1,80},\s*(?:a|an|the)(?![\w-])/i.test(text.slice(end, end + 110))) return false;
-    if (!FEATURES_NOUN_BEFORE_RE.test(before) && /^\s+support\s+for\b/i.test(after)) {
+    if (!FEATURES_NOUN_BEFORE_RE.test(before) && /^\s+support\s+for(?![\w-])/i.test(after)) {
       if (/\b(?:the|a|an|this|that|each|every|one)\s+[\w-]+\s*$/i.test(before)) return false;
     }
 
     // Interrogative determiners ("which features") are nouns, but relative
     // pronouns with an article-led or adverb-led object ("which features a") are verbs.
+    // "which/what features" is a noun only in an indirect question: after a
+    // question verb ("Decide which features matter") or at the start of a
+    // sentence ("Which features matter most..."). A comma-led "which", a verb
+    // idiom ("features prominently") or any other lead keeps the verb reading,
+    // so an unlisted context behaves as it did before #384.
     if (/\b(?:which|what)\s+$/i.test(before)) {
-      if (/^\s+(?:a|an|the|\d+|one|two|three|four|five|six|seven|eight|nine|ten|prominently|heavily|mainly|primarily|largely|mostly|predominantly|exclusively|regularly|frequently|notably|also)(?![\w-])/i.test(after)) return false;
-      return true;
+      if (/,\s*which\s+$/i.test(before)) return false;
+      if (/^\s+(?:prominently|heavily)(?![\w-])/i.test(after)) return false;
+      return FEATURES_QUESTION_LEAD_RE.test(before);
     }
-
     return FEATURES_NOUN_BEFORE_RE.test(before) || FEATURES_NOUN_AFTER_RE.test(after);
   }
 

@@ -1321,6 +1321,16 @@ test('features: residual precision checks from #384', () => {
   assert.equal(featuresHit('Check which features rely on the API before you migrate any of the older workspaces.'), undefined, 'which features rely');
   assert.equal(featuresHit('Find out which features family members can share on the plan before you upgrade it.'), undefined, 'which features family');
   assert.ok(featuresHit('This is the one dish which features heavily in every review we read over the past year.'), 'which features heavily');
+  assert.ok(featuresHit('Our new platform, which features dashboards and alerting, now serves every team in the company.'), 'comma-led which features + bare plural');
+  assert.equal(featuresHit('The accessibility features support for-profit organizations that assist people with disabilities.'), undefined, 'support for-profit is a noun use');
+  assert.equal(featuresHit('Check which features also work offline before we choose a plan for the whole team.'), undefined, 'which features also work');
+  assert.equal(featuresHit('Check which features regularly fail when customers upload large files from home.'), undefined, 'which features regularly fail');
+  assert.ok(featuresHit('We tested a library which features dashboards and reports for every department in the company.'), 'restrictive which features + bare plural');
+  assert.ok(featuresHit('We tested a library which features occasionally updated dashboards for every department.'), 'restrictive which features + adverb');
+  assert.equal(featuresHit('Decide which features the team should prioritize before the next release ships to users.'), undefined, 'question lead + article');
+  assert.equal(featuresHit('Tell me what features a customer can disable from the settings page in the app.'), undefined, 'tell me what features');
+  assert.equal(featuresHit('Identify which features two teams requested during the planning meeting last week.'), undefined, 'question lead + numeral');
+  assert.equal(featuresHit('Which features matter most depends on the size of the team and the plan you choose.'), undefined, 'sentence-initial which features');
 });
 
 test('tier1-clarity leaves "features" alone as a plural noun', () => {

@@ -13,7 +13,7 @@ All notable changes to this project are documented here.
 
 ### Fixed
 
-- Treat interrogative which/what/whose features as nouns and keep the features support for verb finding; recognize relative-clause verbs by an explicit adverb list, not any "-ly" word (#384).
+- Treat "which/what features" as a noun only in an indirect question (after a question verb such as decide, check or find out, or at the start of a sentence) and "whose features" as a noun; keep relative clauses ("a library which features dashboards", ", which features a dashboard"), the "features prominently/heavily" idioms and "features support for" as verb findings (#384).
 - Narrow the `features` clarity finding with noun-context heuristics for product writing, including headings and bare objects ("three new features", "Features", "we ship features"). Keep findings for tested verb uses such as "the app features a dashboard", relative clauses and versioned product subjects. This is a context heuristic rather than a complete grammatical classifier (#351).
 - Score long self-scan documents with a rounded word-weighted average of their accepted chunks instead of the highest chunk score. Short-document scores and issue/category totals stay unchanged (#382).
 - Narrow the evolution-of shape in `significance-inflation` to require a preceding inflating word, such as "chapter" or "turning point"; neutral scientific and historical uses ("a key stage in the evolution of the vertebrate eye", "an odd place in the evolution of systems languages") no longer flag (#212).
