@@ -4068,3 +4068,8 @@ if (failed > 0) {
   process.exit(1);
 }
 console.log('\nAll detector fixtures passed.');
+test('features: residual precision checks from #384', () => {
+  assert.equal(featuresHit('Decide which features matter most to our users this quarter, before choosing a plan.'), undefined, 'which features');
+  assert.equal(featuresHit('Decide what features matter most to our users this quarter, before choosing a plan.'), undefined, 'what features');
+  assert.ok(featuresHit('The library features support for asynchronous requests across every supported device in our network.'), 'library features support for');
+});
