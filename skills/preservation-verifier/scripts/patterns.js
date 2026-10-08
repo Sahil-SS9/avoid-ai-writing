@@ -290,7 +290,7 @@ const AIDetector = (() => {
   // or a verb.
   // Singular "this", "that" and "each" cannot determine the plural noun:
   // here they are subjects ("each features a...") or a relative pronoun.
-  const FEATURES_NOUN_BEFORE_RE = /(?:^|[.!?:;(]\s*|(?:^|\n)[ \t]*(?:[-*+>#]+[ \t]*)?|\b(?:the|a|an|these|those|its|their|our|your|my|his|her|of|or|new|key|main|core|top|other|more|most|many|several|some|all|any|few|no|both|only|about|over|just|free|similar|common|specific|distinct|additional|extra|premium|advanced|basic|best|unique|missing|upcoming|existing|latest|major|minor|useful|important|various|different|certain|such|\d+|two|three|four|five|six|seven|eight|nine|ten|which|what|whose)\s+|\w['’]s\s+|\w[-/]\w+\s+)$/i;
+  const FEATURES_NOUN_BEFORE_RE = /(?:^|[.!?:;(]\s*|(?:^|\n)[ \t]*(?:[-*+>#]+[ \t]*)?|\b(?:the|a|an|these|those|its|their|our|your|my|his|her|of|or|new|key|main|core|top|other|more|most|many|several|some|all|any|few|no|both|only|about|over|just|free|similar|common|specific|distinct|additional|extra|premium|advanced|basic|best|unique|missing|upcoming|existing|latest|major|minor|useful|important|various|different|certain|such|\d+|two|three|four|five|six|seven|eight|nine|ten|whose)\s+|\w['’]s\s+|\w[-/]\w+\s+)$/i;
   // "on-device" is an object modifier, not the preposition "on".
   const FEATURES_NOUN_AFTER_RE = /^(?:[ \t]*(?:[.,;:!?()[\]"'’”\n]|$)|\s+(?:of|for|in|on|at|into|and|or|but|nor|are|were|is|was|be|been|being|that|which|who|whose|like|such|to|from|with|without|than|help|helps|helped|let|allow|make|keep|give|provide|enable|offer|save|protect|ensure|improve|reduce|support|remain|vary|need|unlock|bring|include|includes|included|work|works|worked|will|can|could|should|would|may|might|must|do|did|does|have|has|had|we|you|they|i|it)(?![\w-]))/i;
   // Bare product objects: "we ship features", "teams build features".
@@ -314,7 +314,17 @@ const AIDetector = (() => {
     // object. Strong noun contexts still take priority over punctuation.
     if (!FEATURES_NOUN_BEFORE_RE.test(before)
         && /^[ \t]*,[^,\n]{1,80},\s*(?:a|an|the)(?![\w-])/i.test(text.slice(end, end + 110))) return false;
-    if (!FEATURES_NOUN_BEFORE_RE.test(before) && /^\s+support\s+for\b/i.test(after)) return false;
+    if (!FEATURES_NOUN_BEFORE_RE.test(before) && /^\s+support\s+for\b/i.test(after)) {
+      if (/\b(?:the|a|an|this|that|each|every|one)\s+[\w-]+\s*$/i.test(before)) return false;
+    }
+
+    // Interrogative determiners ("which features") are nouns, but relative
+    // pronouns with an article-led or adverb-led object ("which features a") are verbs.
+    if (/\b(?:which|what)\s+$/i.test(before)) {
+      if (/^\s+(?:a|an|the|\d+|one|two|three|four|five|six|seven|eight|nine|ten|[a-z_-]+ly)(?![\w-])/i.test(after)) return false;
+      return true;
+    }
+    
     return FEATURES_NOUN_BEFORE_RE.test(before) || FEATURES_NOUN_AFTER_RE.test(after);
   }
 

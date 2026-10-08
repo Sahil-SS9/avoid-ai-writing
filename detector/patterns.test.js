@@ -1309,6 +1309,15 @@ test('tier1-clarity flags "features" used as a verb', () => {
   }
 });
 
+test('features: residual precision checks from #384', () => {
+  assert.equal(featuresHit('Decide which features matter most to our users this quarter, before choosing a plan.'), undefined, 'which features');
+  assert.equal(featuresHit('Decide what features matter most to our users this quarter, before choosing a plan.'), undefined, 'what features');
+  assert.ok(featuresHit('The library features support for asynchronous requests across every supported device in our network.'), 'library features support for');
+  assert.ok(featuresHit('The new enterprise service, which features a dashboard, serves teams everywhere in the world.'), 'relative clause verb');
+  assert.ok(featuresHit('This is what features prominently in every review over the past year.'), 'what features prominently');
+  assert.equal(featuresHit('Security features support for older protocols on devices without hardware acceleration.'), undefined, 'plural noun subject features support for');
+});
+
 test('tier1-clarity leaves "features" alone as a plural noun', () => {
   // #351: on a product site, every hit was the software noun.
   for (const text of [
@@ -4068,8 +4077,3 @@ if (failed > 0) {
   process.exit(1);
 }
 console.log('\nAll detector fixtures passed.');
-test('features: residual precision checks from #384', () => {
-  assert.equal(featuresHit('Decide which features matter most to our users this quarter, before choosing a plan.'), undefined, 'which features');
-  assert.equal(featuresHit('Decide what features matter most to our users this quarter, before choosing a plan.'), undefined, 'what features');
-  assert.ok(featuresHit('The library features support for asynchronous requests across every supported device in our network.'), 'library features support for');
-});
