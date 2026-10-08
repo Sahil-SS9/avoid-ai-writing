@@ -1338,6 +1338,9 @@ test('features: residual precision checks from #384', () => {
     'We listened to the bonus track which features guest vocals from two local artists on the chorus.',
     'Read the review which features detailed comparisons of every plan we tested this year.',
     'Read our detailed review which features comparisons of every plan we tested this year.',
+    'We completed a security check which features detailed diagnostics for each device in the network.',
+    "We listened to the editor's pick which features guest vocals from two local artists on the chorus.",
+    'The library (which features a dashboard and report builder) serves every department in the company.',
   ]) {
     assert.ok(featuresHit(text), `relative-clause verb missed: ${text}`);
   }
@@ -1353,6 +1356,8 @@ test('features: residual precision checks from #384', () => {
   ]) {
     assert.equal(featuresHit(text), undefined, `noun read as a verb: ${text}`);
   }
+  // Known limit: when "what" is itself the subject ("Check what features a dashboard and
+  // export tools"), a question lead still reads "features" as a noun; tracked as a follow-up.
   // Deferred: "The library features support for..." as a verb is ambiguous with plural-noun
   // subjects ("The experimental features support for loops"), so it stays out of this fix.
 });

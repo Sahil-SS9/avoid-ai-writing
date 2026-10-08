@@ -297,8 +297,11 @@ const AIDetector = (() => {
   // A subject is required so noun subjects such as "the ship"/"the build"
   // still flag. One optional modifier preserves "we ship GPT-5 features".
   const FEATURES_NOUN_OBJECT_RE = /\b(?:i|we|you|they|teams?|developers?|engineers?|users?|companies|vendors|the\s+(?:release|update))\s+(?:(?:can|could|will|would|should|must)\s+)?(?:ship|ships|shipped|shipping|build|builds|built|building|add|adds|added|adding)\s+(?:[\w./-]+\s+)?$/i;
-  // Leads that make "which/what features" an indirect question (#384).
-  const FEATURES_QUESTION_LEAD_RE = /(?:^|[.!?:;(]\s*|(?:^|\n)[ \t]*(?:[-*+>#]+[ \t]*)?|\b(?:decide|decides|deciding|choose|choosing|pick|check|checking|see|know|knowing|learn|find\s+out|figure\s+out|work\s+out|identify|determine|ask|asking|asked|tell\s+(?:me|us|them|you)|show\s+(?:me|us|them|you)|understand|explain|wonder|discover|confirm|consider|evaluate|prioritize|about)\s+)(?:which|what)\s+$/i;
+  // Leads that make "which/what features" an indirect question (#384): a question
+  // verb that opens its clause ("Decide which...", "we should check which..."),
+  // or which/what at the start of a sentence or list item. A lead word inside a
+  // noun phrase ("a security check which features...") does not count.
+  const FEATURES_QUESTION_LEAD_RE = /(?:^|[.!?:;]\s*|(?:^|\n)[ \t]*(?:[-*+>#]+[ \t]*)?|(?:^|[.!?:;,]\s*|(?:^|\n)[ \t]*(?:[-*+>#]+[ \t]*)?|\b(?:i|we|you|they|he|she|let['’]?s|to|can|could|should|must|will|would|please|just|then|first|now|and|or|but|so)\s+)(?:decide|decides|deciding|choose|choosing|pick|check|checking|see|know|knowing|learn|find\s+out|figure\s+out|work\s+out|identify|determine|ask|asking|asked|tell\s+(?:me|us|them|you)|show\s+(?:me|us|them|you)|understand|explain|wonder|discover|confirm|consider|evaluate|prioritize|about)\s+)(?:which|what)\s+$/i;
 
   // A lead word after a determiner is a noun ("a track which features...",
   // "the review which features..."), not a question verb.
