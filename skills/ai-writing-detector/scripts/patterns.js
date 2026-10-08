@@ -321,10 +321,10 @@ const AIDetector = (() => {
     // Interrogative determiners ("which features") are nouns, but relative
     // pronouns with an article-led or adverb-led object ("which features a") are verbs.
     if (/\b(?:which|what)\s+$/i.test(before)) {
-      if (/^\s+(?:a|an|the|\d+|one|two|three|four|five|six|seven|eight|nine|ten|[a-z_-]+ly)(?![\w-])/i.test(after)) return false;
+      if (/^\s+(?:a|an|the|\d+|one|two|three|four|five|six|seven|eight|nine|ten|prominently|heavily|mainly|primarily|largely|mostly|predominantly|exclusively|regularly|frequently|notably|also)(?![\w-])/i.test(after)) return false;
       return true;
     }
-    
+
     return FEATURES_NOUN_BEFORE_RE.test(before) || FEATURES_NOUN_AFTER_RE.test(after);
   }
 

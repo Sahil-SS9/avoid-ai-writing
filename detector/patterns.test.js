@@ -1316,6 +1316,11 @@ test('features: residual precision checks from #384', () => {
   assert.ok(featuresHit('The new enterprise service, which features a dashboard, serves teams everywhere in the world.'), 'relative clause verb');
   assert.ok(featuresHit('This is what features prominently in every review over the past year.'), 'what features prominently');
   assert.equal(featuresHit('Security features support for older protocols on devices without hardware acceleration.'), undefined, 'plural noun subject features support for');
+  // An explicit adverb list, not any word ending in -ly: "apply", "rely" and "family" are not adverbs.
+  assert.equal(featuresHit('Decide which features apply to your team before you choose a plan for the year.'), undefined, 'which features apply');
+  assert.equal(featuresHit('Check which features rely on the API before you migrate any of the older workspaces.'), undefined, 'which features rely');
+  assert.equal(featuresHit('Find out which features family members can share on the plan before you upgrade it.'), undefined, 'which features family');
+  assert.ok(featuresHit('This is the one dish which features heavily in every review we read over the past year.'), 'which features heavily');
 });
 
 test('tier1-clarity leaves "features" alone as a plural noun', () => {
