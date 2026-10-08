@@ -1792,6 +1792,7 @@ test('fully substituted words beside Russian words are a documented limit', () =
   assert.equal(AIDetector.normalizeText(inside).flags.homoglyph, 0);
   const beside = 'Your account is at risk. пароль: аст now to secure it immediately through this form before it expires.';
   assert.equal(AIDetector.normalizeText(beside).flags.homoglyph, 0);
+  assert.equal(AIDetector.normalizeText('Позвоните в поддержку\nаст now to secure it.').flags.homoglyph, 0);
 });
 
 test('bilingual technical sentences keep Russian words and one-letter prepositions intact', () => {
@@ -1799,6 +1800,85 @@ test('bilingual technical sentences keep Russian words and one-letter prepositio
   const normalized = AIDetector.normalizeText(text);
   assert.equal(normalized.text, text);
   assert.equal(normalized.flags.homoglyph, 0);
+});
+
+test('Russian technical prose keeps short Russian words next to English terms', () => {
+  const text = 'Задача взята: issue #9194 и PR #9195 (RecursionError в `make_json_safe()` на Enum, найдено в Discussions #9189).';
+  const normalized = AIDetector.normalizeText(text);
+  assert.equal(normalized.text, text);
+  assert.equal(normalized.flags.homoglyph, 0);
+  assert.notEqual(AIDetector.analyzeText(text).document_classification, 'AI_ONLY');
+});
+
+test('dates and hard line wraps do not cut a Russian sentence into Latin-looking pieces', () => {
+  const text = 'Ответы со ссылкой на stageload там, где обсуждают нехватку памяти на Mac. Охват\n'
+    + '   поста в r/StableDiffusion от 07.10 снимем в понедельник.';
+  const normalized = AIDetector.normalizeText(text);
+  assert.equal(normalized.text, text);
+  assert.equal(normalized.flags.homoglyph, 0);
+});
+
+test('a hard-wrapped English sentence still swaps a fully substituted word', () => {
+  const normalized = AIDetector.normalizeText('Your account is at risk. аст now\nto secure it.');
+  assert.equal(normalized.text, 'Your account is at risk. act now\nto secure it.');
+  assert.equal(normalized.flags.homoglyph, 3);
+});
+
+test('closing quotes and brackets keep separate sentences from sharing script evidence', () => {
+  for (const [open, close] of [['«', '»'], ['"', '"'], ['“', '”'], ['‘', '’'], ['(', ')'], ['[', ']'], ['{', '}']]) {
+    const text = `${open}Задача закрыта.${close} аст now to secure it.`;
+    const normalized = AIDetector.normalizeText(text);
+    assert.equal(normalized.text, `${open}Задача закрыта.${close} act now to secure it.`, close);
+    assert.equal(normalized.flags.homoglyph, 3, close);
+  }
+});
+
+test('Markdown blocks do not share script evidence across an unterminated line', () => {
+  for (const start of ['- ', '* ', '+ ', '1. ', '2) ', '# ', '### ', '> ', '>', '>>', '| ', '```', '~~~']) {
+    for (const newline of ['\n', '\r\n']) {
+      const text = `- аст now to secure it${newline}${start}Позвоните в поддержку`;
+      const normalized = AIDetector.normalizeText(text);
+      assert.equal(normalized.text, `- act now to secure it${newline}${start}Позвоните в поддержку`, start);
+      assert.equal(normalized.flags.homoglyph, 3, start);
+    }
+  }
+});
+
+test('Markdown separators, table delimiters and HTML starts keep script evidence separate', () => {
+  for (const newline of ['\n', '\r\n']) {
+    for (const separator of ['---', '***', '___', '===', '=', '- - -', '* * *', '_ _ _', '  ---  ']) {
+      const text = `аст now to secure it${newline}${separator}${newline}Позвоните в поддержку`;
+      const normalized = AIDetector.normalizeText(text);
+      assert.equal(normalized.text, text.replace('аст', 'act'), separator);
+      assert.equal(normalized.flags.homoglyph, 3, separator);
+    }
+    for (const text of [
+      `Позвоните | поддержку${newline}--- | ---${newline}аст now | to secure it`,
+      `Позвоните | поддержку${newline}:--- | ---: |${newline}аст now | to secure it`,
+      `<p>Позвоните в поддержку</p>${newline}<p>аст now to secure it</p>`,
+    ]) {
+      assert.equal(AIDetector.normalizeText(text).text, text.replace('аст', 'act'));
+      assert.equal(AIDetector.normalizeText(text).flags.homoglyph, 3);
+    }
+    const prose = `Ответы со ссылкой на docker v1.2${newline}от 07.10 снимем в понедельник.`;
+    assert.equal(AIDetector.normalizeText(prose).text, prose);
+    assert.equal(AIDetector.normalizeText(prose).flags.homoglyph, 0);
+  }
+});
+
+test('unspaced sentence punctuation does not hide a fully substituted English word', () => {
+  for (const ending of ['.', '!', '?', '.(', '.«', '!“']) {
+    const text = `Позвоните сейчас${ending}аст now to secure it.`;
+    const normalized = AIDetector.normalizeText(text);
+    assert.equal(normalized.text, `Позвоните сейчас${ending}act now to secure it.`, ending);
+    assert.equal(normalized.flags.homoglyph, 3, ending);
+  }
+});
+
+test('indented CRLF prose continues across a hard wrap and keeps version dots', () => {
+  const text = 'Ответы на вопросы о docker v1.2 и report.pdf\r\n    там, где обсуждают настройку памяти на Mac.';
+  assert.equal(AIDetector.normalizeText(text).text, text);
+  assert.equal(AIDetector.normalizeText(text).flags.homoglyph, 0);
 });
 
 test('equal Latin and Cyrillic counts keep the Cyrillic-dominant tie rule', () => {
