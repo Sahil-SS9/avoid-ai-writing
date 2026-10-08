@@ -307,6 +307,10 @@ const AIDetector = (() => {
   // "the review which features..."), not a question verb.
   const FEATURES_LEAD_AS_NOUN_RE = /\b(?:a|an|the|this|that|these|those|my|our|your|their|its|his|her|each|every)\s+[\w-]+\s+(?:which|what)\s+$/i;
 
+  // Subjects that definitively make "features" a verb, avoiding ambiguity with
+  // plural-noun subjects like "The experimental features" or "Security features".
+  const FEATURES_VERB_SUBJECTS = /\b(?:library|tool|app|application|platform|system|language|service|product|update|release|version|site|website|game|device|model|framework|package|plugin|extension|which|what|that|who|it|he|she)\s+$/i;
+
   function featuresIsNoun(text, index) {
     const end = index + 'features'.length;
     const before = text.slice(Math.max(0, index - 40), index);
@@ -330,7 +334,55 @@ const AIDetector = (() => {
     // sentence ("Which features matter most..."). Every other context falls
     // through to the checks below unchanged, so relative clauses ("a library
     // which features dashboards") keep their verb finding (#384).
-    if (FEATURES_QUESTION_LEAD_RE.test(before) && !FEATURES_LEAD_AS_NOUN_RE.test(before)) return true;
+    if (FEATURES_QUESTION_LEAD_RE.test(before) && !FEATURES_LEAD_AS_NOUN_RE.test(before)) {
+      // If there is no trailing verb (e.g. end of clause), it's the verb case ("Check what features a dashboard and export tools.").
+      // Look past a compound subject and optional appositive for a trailing verb before returning the verb classification.
+      const match = /^\s+(?:a|an|the)\s+[\w-]+\s*(?:(?:and\b|or\b)\s+(?:a\s+|an\s+|the\s+)?(?:[\w-]+\s+){0,2}[\w-]+\s*)?(?:([,.!?;])|$)/i.exec(after);
+      if (match) {
+        const predicateRe = /\b(?:can|could|should|will|would|may|might|must|is|are|was|were|has|have|had|do|does|did|include|includes|disable|disables|reject|accept|allow|deny|provide|require|use|make|work|help|give|take|need|become|seem|look|show|offer|support|supports|fail|pass|lack|prefer|choose|prevent|stop)\b/i;
+        
+        // If the matched subject ends with a predicate right before the punctuation, 
+        // the predicate was consumed as part of the compound subject.
+        const subjectText = match[0].slice(0, match[1] ? -match[1].length : undefined).trim();
+        const lastWord = subjectText.split(/\s+/).pop();
+        if (predicateRe.test(lastWord)) {
+          return true;
+        }
+
+        if (match[1] === ',') {
+          // If the comma leads into a phrase, limit noun classification to a predicate 
+          // belonging to the article-led subject (after the next comma), excluding predicates inside subordinate clauses.
+          const remainder = text.slice(end + match[0].length, end + 120);
+          // An adverb can sit between the closing comma and the predicate.
+          const remainderPredicateRe = new RegExp(`^[^,]+,\\s*(?:(?:[\\w-]+ly|also|not|never)\\s+){0,2}${predicateRe.source}`, 'i');
+          if (remainderPredicateRe.test(remainder)) {
+            return true;
+          }
+        }
+        return false;
+      }
+      return true;
+    }
+
+    // "A library features support for..." is a verb.
+    // "System features support for..." is a plural noun subject + verb.
+    if (FEATURES_VERB_SUBJECTS.test(before) && /^\s+support\s+for\b/i.test(after)) {
+      const hasPluralDeterminer = /\b(?:these|those|all|some|many|few|various|multiple|several|both)\s+[\w-]+\s+$/i.test(before);
+      const extendedAfter = text.slice(end, end + 100);
+      const hasPluralPredicate = /^\s+support\s+for(?:[^.?!;]{0,80})?\b(?:and|but|or|nor)\s+(?:are|were|have|do|reject|accept|allow|deny|provide|require|use|make|work|help|give|take|need|become|seem|look|show|include|offer|support|fail|pass|lack|prefer|choose|prevent|stop)\b/i.test(extendedAfter);
+      // Do not borrow a determiner across a preposition or conjunction:
+      // "a suite of system features" still has plural noun "features".
+      // "that" can introduce a clause and "which" can determine plural nouns.
+      // A relative pronoun needs its own determiner-led subject evidence.
+      const hasSingularEvidence = /\b(?:a|an|this|that|every|each|one)\s+(?:(?!(?:of|for|in|with|and|or|which|what|that|who)\b)[\w-]+\s+){1,3}$/i.test(before)
+        || /\b(?:it|he|she)\s+$/i.test(before)
+        || /\b(?:a|an|the|this|that|my|our|your|their|its|his|her|each|every)\s+[\w-]+\s+(?:which|that|who)\s+$/i.test(before);
+      
+      if (!hasPluralDeterminer && !hasPluralPredicate && hasSingularEvidence) {
+        return false;
+      }
+    }
+
     return FEATURES_NOUN_BEFORE_RE.test(before) || FEATURES_NOUN_AFTER_RE.test(after);
   }
 
