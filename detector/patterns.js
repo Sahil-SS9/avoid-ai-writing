@@ -300,6 +300,10 @@ const AIDetector = (() => {
   // Leads that make "which/what features" an indirect question (#384).
   const FEATURES_QUESTION_LEAD_RE = /(?:^|[.!?:;(]\s*|(?:^|\n)[ \t]*(?:[-*+>#]+[ \t]*)?|\b(?:decide|decides|deciding|choose|choosing|pick|check|checking|see|know|knowing|learn|find\s+out|figure\s+out|work\s+out|identify|determine|ask|asking|asked|tell\s+(?:me|us|them|you)|show\s+(?:me|us|them|you)|understand|explain|review|compare|track|wonder|discover|confirm|consider|evaluate|select|prioritize|about)\s+)(?:which|what)\s+$/i;
 
+  // A lead word after a determiner is a noun ("a track which features...",
+  // "the review which features..."), not a question verb.
+  const FEATURES_LEAD_AS_NOUN_RE = /\b(?:a|an|the|this|that|these|those|my|our|your|their|its|his|her|each|every)\s+[\w-]+\s+(?:which|what)\s+$/i;
+
   function featuresIsNoun(text, index) {
     const end = index + 'features'.length;
     const before = text.slice(Math.max(0, index - 40), index);
@@ -318,7 +322,8 @@ const AIDetector = (() => {
     if (!FEATURES_NOUN_BEFORE_RE.test(before)
         && /^[ \t]*,[^,\n]{1,80},\s*(?:a|an|the)(?![\w-])/i.test(text.slice(end, end + 110))) return false;
     if (!FEATURES_NOUN_BEFORE_RE.test(before) && /^\s+support\s+for(?![\w-])/i.test(after)) {
-      if (/\b(?:the|a|an|this|that|each|every|one)\s+[\w-]+\s*$/i.test(before)) return false;
+      if (/\b(?:the|a|an|this|that|each|every|one)\s+[\w-]+\s*$/i.test(before)
+          && !/\b[\w-]+(?:ing|ity)\s*$/i.test(before)) return false;
     }
 
     // Interrogative determiners ("which features") are nouns, but relative
@@ -331,7 +336,7 @@ const AIDetector = (() => {
     if (/\b(?:which|what)\s+$/i.test(before)) {
       if (/,\s*which\s+$/i.test(before)) return false;
       if (/^\s+(?:prominently|heavily)(?![\w-])/i.test(after)) return false;
-      return FEATURES_QUESTION_LEAD_RE.test(before);
+      if (FEATURES_QUESTION_LEAD_RE.test(before) && !FEATURES_LEAD_AS_NOUN_RE.test(before)) return true;
     }
     return FEATURES_NOUN_BEFORE_RE.test(before) || FEATURES_NOUN_AFTER_RE.test(after);
   }

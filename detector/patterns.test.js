@@ -1331,6 +1331,12 @@ test('features: residual precision checks from #384', () => {
   assert.equal(featuresHit('Tell me what features a customer can disable from the settings page in the app.'), undefined, 'tell me what features');
   assert.equal(featuresHit('Identify which features two teams requested during the planning meeting last week.'), undefined, 'question lead + numeral');
   assert.equal(featuresHit('Which features matter most depends on the size of the team and the plan you choose.'), undefined, 'sentence-initial which features');
+  assert.equal(featuresHit('We discussed which features we should remove from the next release of the app.'), undefined, 'unlisted lead falls through to noun evidence');
+  assert.equal(featuresHit('I asked the team which features they want most before we plan the next quarter.'), undefined, 'unlisted lead + pronoun subject');
+  assert.ok(featuresHit('We listened to a track which features guest vocals from two local artists on the chorus.'), 'a track which features (noun lead) stays a verb');
+  assert.ok(featuresHit('Read the review which features detailed comparisons of every plan we tested this year.'), 'the review which features stays a verb');
+  assert.equal(featuresHit('The scripting features support for loops but reject while loops in the embedded language.'), undefined, '-ing modifier: plural noun subject');
+  assert.equal(featuresHit('The security features support for older protocols on devices without hardware acceleration.'), undefined, '-ity modifier: plural noun subject');
 });
 
 test('tier1-clarity leaves "features" alone as a plural noun', () => {
