@@ -1,7 +1,7 @@
 ---
 name: avoid-ai-writing
 description: Audit and rewrite content to remove AI writing patterns ("AI-isms"). Use this skill when asked to "remove AI-isms," "clean up AI writing," "edit writing for AI patterns," "audit writing for AI tells," or "make this sound less like AI." Supports a detect-only mode, an edit-in-place mode for files, an optional voice profile (casual / professional / technical / warm / blunt), and an iterate-to-convergence pass.
-version: 3.37.0
+version: 3.38.0
 license: MIT
 compatibility: Any AI coding assistant that supports agentskills.io SKILL.md format (Claude Code, Cursor, VS Code Copilot, Hermes Agent, OpenHands, etc.) or OpenClaw. No external tools or APIs required.
 adoption_status: permanent
@@ -40,7 +40,7 @@ problem when useful, but rebuild, reorder, or substantially condense only when
 the user asks for editing broad enough to permit it. An explicit request to
 change structure or register permits that transformation; it does not permit
 new evidence, experiences, or claims. For a large file with a clearly requested
-section or task, edit that scope without asking merely because the file is long.
+section or task, edit that scope; length alone is not a reason to stop and ask.
 When scope is genuinely ambiguous, use the narrowest clearly relevant scope or
 ask for the missing boundary before making a broad change.
 

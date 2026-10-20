@@ -8,14 +8,27 @@ All notable changes to this project are documented here.
 
 ### Changed
 
+- Add editorial decision cards to selected existing rules, with stable IDs, partial detector mappings, applicability conditions, and edit/keep/gap examples. Preserve subjective judgments and report unresolved claim scope. Keep the full catalog mandatory in directory and portable installations; no detector API, loading default, or category count changes (#206).
+- Reworded the large-file scope sentence in the editing contract so it no longer reads as "without asking" to static skill scanners; the meaning is unchanged. Documented known scanner false positives in `SUPPORT.md`.
+- The detector now exports `CONTEXT_MODES` and `SOURCE_MODES`, the frozen lists of modes `analyzeText()` accepts. The CLIs read them instead of keeping their own copies (#413, #414).
+
+### Fixed
+
+- Remove polynomial backtracking from the sentence-unit regex in `normalizeText()`. A long tab or space run after a Markdown table delimiter (`-|-`) or thematic break (`***`, `___`) made `analyzeText()` take seconds on a 64 KB input, before the word limit applied. Matching is unchanged; both shapes are now in the bounded-time test (CodeQL `js/polynomial-redos`).
+- Treat the smart-punctuation co-occurrence finding as a low-priority style check in plain mode and omit it in rendered-Markdown mode. House-style typography no longer changes authorship scores, probabilities, confidence, or classifications, including the separate classifier corroborator. Keep the public type and other pattern checks (#351).
+
+## [3.38.0] — 2026-10-15
+
+### Changed
+
 - Replaced placeholder instructions and empty suggestions in the word replacement tables with concrete, direct alternatives for previously incomplete entries (#215).
 - Removed `breakthrough` from the `game-changer` / `game-changing` suggestions to avoid preserving unsupported importance claims. Added missing context fallbacks and adjective/noun clarifications for `transformative`, `paradigm-shifting`, and `despite challenges` (#380).
 - Ground model-only `detect` audit findings in the pattern catalog: report only catalog patterns with canonical categories and severities (e.g., transition phrases and generic conclusions under P2), support catalog-defined adverbial base forms (e.g. `robustly`, `comprehensively`), exclude suggested replacement alternatives, and omit sub-threshold Tier 2 and Tier 3 matches from standalone issues (#323). Added standalone `evals/rewrite/check-detect-audit.cjs` and a regression suite with executed mutation controls, while preserving original pinned `check-literals.cjs` for dated report reproducibility.
 
 ### Fixed
 
+- Keep the "X is dead; long live Y" form as editorial judgment rather than a deterministic `performed-insight` finding. Essay titles, supported contrasts, and literal succession announcements share the wording; other performed-insight phrases still detect (#351).
 - Recognize Markdown setext heading underlines (including two-hyphen level-2 underlines) alongside thematic breaks as sentence boundaries so surrounding blocks do not share homoglyph script evidence (#390).
-
 - Short Russian words in Russian technical prose with English terms ("`make_json_safe()` на Enum", "r/StableDiffusion от 07.10") are no longer read as homoglyph swaps. The lookalike rule now decides per sentence: a dot inside a date or a version and a hard line wrap no longer end it, and a word spelled entirely in lookalike letters is swapped only when its sentence has no Russian or Greek letter that is not a lookalike (follow-up to #352). Sentence punctuation, Markdown separators/tables and HTML block starts keep unrelated blocks separate. Fully substituted words beside Russian or Greek prose, including across plain hard wraps, remain a documented detection limit.
 - Disambiguate "features support for" detection to flag verb uses with definite, possessive, and singular subject determiners, including versioned product names ("The library features support for...", "This Windows 11 app features support for..."), while preserving plural-noun readings with programming keyword objects and compound predicates (#387).
 - Treat "which/what features" as a noun in an indirect question (right after a question verb such as decide, check or find out, or at the start of a sentence) and "whose features" as a noun; every other use keeps the existing verb checks (#384). Recognize explicitly singular subjects before "features support for" as a verb, preserving plural-noun readings, and recognize article-led indirect-question verb cases with compound subjects (#391).
