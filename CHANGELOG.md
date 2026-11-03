@@ -6,6 +6,10 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- `--style` configs accept `colons: "never"`, `semicolons: "never"`, and `emDash: "never"`. `scripts/check-style.js` reports each as a hard violation in prose, so a house style that bans these marks gates the exit code. Clock times, ratios, URL schemes, table delimiter rows (including blockquotes), HTML entity syntax, and code are not flagged. Character references that render as banned punctuation still fail.
+
 ### Changed
 
 - Add editorial decision cards to selected existing rules, with stable IDs, partial detector mappings, applicability conditions, and edit/keep/gap examples. Preserve subjective judgments and report unresolved claim scope. Keep the full catalog mandatory in directory and portable installations; no detector API, loading default, or category count changes (#206).
@@ -14,6 +18,7 @@ All notable changes to this project are documented here.
 
 ### Fixed
 
+- The preservation validator's `stats.indentedBlocks` no longer counts indented lines inside fenced code or four-space paragraph continuations. Only indented blocks that follow a blank line outside a list are counted, as documented. Top-level fences end preceding list context; fences nested in a list preserve it.
 - Remove polynomial backtracking from the sentence-unit regex in `normalizeText()`. A long tab or space run after a Markdown table delimiter (`-|-`) or thematic break (`***`, `___`) made `analyzeText()` take seconds on a 64 KB input, before the word limit applied. Matching is unchanged; both shapes are now in the bounded-time test (CodeQL `js/polynomial-redos`).
 - Treat the smart-punctuation co-occurrence finding as a low-priority style check in plain mode and omit it in rendered-Markdown mode. House-style typography no longer changes authorship scores, probabilities, confidence, or classifications, including the separate classifier corroborator. Keep the public type and other pattern checks (#351).
 
